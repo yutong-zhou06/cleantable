@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Obsession · 界面原型 v0.3</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{
+    --stage-bg:radial-gradient(1200px 600px at 15% -10%,#28303f 0%,#171a21 45%,#101218 100%);
+    --stage-fg:#E9ECF2;--stage-fg2:#8A93A5;
+    --stage-card:rgba(255,255,255,.045);--stage-line:rgba(255,255,255,.09);
+  }
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    background:var(--stage-bg);background-attachment:fixed;color:var(--stage-fg);
+    min-height:100vh;padding:34px 22px 80px;-webkit-font-smoothing:antialiased;
+  }
+
+  /* ================= 展示台 ================= */
+  .topbar{max-width:1560px;margin:0 auto 10px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:13px}
+  .logo{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:21px;font-weight:700;color:#fff;
+    background:linear-gradient(135deg,#6B8AFF,#A56BFF);box-shadow:0 6px 20px rgba(107,138,255,.4)}
+  .brand h1{font-size:19px;letter-spacing:.4px;font-weight:650}
+  .brand p{font-size:12px;color:var(--stage-fg2);margin-top:2px}
+  .theme-switch{display:flex;gap:8px;background:var(--stage-card);border:1px solid var(--stage-line);padding:5px;border-radius:13px}
+  .tbtn{border:0;background:transparent;color:var(--stage-fg2);font:inherit;font-size:13px;padding:8px 17px;border-radius:9px;cursor:pointer;transition:.18s;font-family:inherit}
+  .tbtn:hover{color:var(--stage-fg)}
+  .tbtn.active{background:rgba(255,255,255,.12);color:#fff;box-shadow:0 1px 6px rgba(0,0,0,.25)}
+
+  .hint{max-width:1560px;margin:0 auto 30px;font-size:12.5px;color:var(--stage-fg2);line-height:1.7;
+    background:var(--stage-card);border:1px solid var(--stage-line);border-radius:14px;padding:12px 18px}
+  .hint b{color:#9FB4FF;font-weight:600}
+
+  .frames{max-width:1560px;margin:0 auto;display:flex;gap:30px;justify-content:center;align-items:flex-start;flex-wrap:wrap}
+  .frame{display:flex;flex-direction:column;align-items:center;gap:13px;flex:0 0 auto}
+  .ftitle{display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:600;color:var(--stage-fg)}
+  .ftitle i{font-style:normal;width:20px;height:20px;border-radius:7px;background:rgba(107,138,255,.2);color:#93A8FF;display:grid;place-items:center;font-size:11px;font-weight:700}
+  .fcap{font-size:11.5px;color:var(--stage-fg2);text-align:center;line-height:1.65;max-width:340px}
+  .fcap b{color:#A9BAFF;font-weight:600}
+
+  /* ================= 手机外壳 ================= */
+  .phone{width:390px;height:812px;border-radius:46px;padding:9px;position:relative;
+    background:linear-gradient(160deg,#3a4050,#1d2129 40%,#2a2f3a);
+    box-shadow:0 26px 60px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.07),inset 0 1px 1px rgba(255,255,255,.14)}
+  .screen{width:100%;height:100%;border-radius:38px;overflow:hidden;position:relative;background:var(--bg);color:var(--text);transition:background .25s,color .25s}
+  .notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:104px;height:24px;border-radius:14px;background:#0b0d11;z-index:60}
+
+  .screen.light{--bg:#F5F6F9;--surface:#FFFFFF;--surface2:#EEF0F5;--surface3:#E5E8EF;
+    --text:#171A21;--text2:#5C6472;--text3:#9AA1AF;--line:#E4E7EE;--today:rgba(76,111,255,.05);--accent:#4C6FFF}
+  .screen.dark{--bg:#0E1015;--surface:#171A21;--surface2:#1E222B;--surface3:#262B36;
+    --text:#E9ECF2;--text2:#98A1B0;--text3:#666E7D;--line:#232833;--today:rgba(107,138,255,.07);--accent:#6B8AFF}
+
+  .statusbar{height:44px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 24px 7px;font-size:13px;font-weight:650;letter-spacing:.2px;position:relative;z-index:50}
+  .statusbar .r{display:flex;gap:5px;align-items:center;font-size:11px}
+
+  /* ================= 通用动画 ================= */
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  @keyframes slideL{from{opacity:0;transform:translateX(26px)}to{opacity:1;transform:none}}
+  @keyframes pop{from{opacity:0;transform:translateY(24px) scale(.96)}to{opacity:1;transform:none}}
+  @keyframes gridIn{from{opacity:.35;transform:translateX(14px)}to{opacity:1;transform:none}}
+  @keyframes gridInBack{from{opacity:.35;transform:translateX(-14px)}to{opacity:1;transform:none}}
+  @keyframes toastIn{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+
+  /* ================= 主页（背景自定义） ================= */
+  .apphead{padding:8px 18px 4px}
+  .apphead .sem{font-size:11.5px;color:var(--text3);letter-spacing:.3px}
+  .apphead .wk{display:flex;align-items:flex-end;justify-content:space-between;margin-top:2px}
+  .apphead h2{font-size:26px;font-weight:750;letter-spacing:.3px}
+  .apphead .dt{font-size:12px;color:var(--text2);margin-top:1px}
+  .wknav{display:flex;gap:2px;align-items:center}
+  .iconbtn{width:34px;height:34px;border-radius:11px;border:0;background:transparent;color:var(--text2);font-size:17px;cursor:pointer;display:grid;place-items:center;transition:.16s;font-family:inherit}
+  .iconbtn:hover{background:var(--surface2);color:var(--text)}
+  .iconbtn:active{transform:scale(.88)}
+
+  .gridwrap{margin:8px 10px 0;border-radius:20px;overflow:hidden;position:relative;background:var(--surface);
+    box-shadow:0 1px 3px rgba(9,12,20,.05),0 8px 22px rgba(9,12,20,.06)}
+  /* 背景图层：正式版来自用户相册或内置样式 */
+  .bg-layer{position:absolute;inset:0;background-size:cover;background-position:center;opacity:1;transition:opacity .3s}
+  .bg-mask{position:absolute;inset:0;transition:opacity .3s}
+  .light .bg-mask{background:linear-gradient(180deg,#F5F6F9 0%,#F5F6F9 100%)}
+  .dark .bg-mask{background:linear-gradient(180deg,#0E1015 0%,#0E1015 100%)}
+
+  .grid{position:relative;display:grid;grid-template-columns:44px repeat(7,1fr);grid-template-rows:44px repeat(10,1fr);height:470px}
+  .grid.anim-next{animation:gridIn .22s ease-out}
+  .grid.anim-prev{animation:gridInBack .22s ease-out}
+  .gcell{border-right:.5px solid var(--line);border-bottom:.5px solid var(--line)}
+  .gcell:nth-child(8n){border-right:0}
+  .timecol{position:relative}
+  .timecol .n{position:absolute;top:5px;left:0;right:0;text-align:center;font-size:11.5px;font-weight:650;color:var(--text2)}
+  .timecol .t{position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:8.5px;color:var(--text3)}
+  .dow{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border-bottom:.5px solid var(--line)!important}
+  .dow .d{font-size:12.5px;font-weight:650}
+  .dow .dd{font-size:9.5px;color:var(--text3)}
+  .dow.today .d{color:var(--accent)}
+  .dow.today .dd{color:var(--accent);font-weight:650}
+
+  .course{margin:2px;border-radius:11px;padding:6px 7px;overflow:hidden;cursor:pointer;position:relative;
+    background:hsl(var(--h) 68% 53% / .125);
+    box-shadow:inset 0 0 0 1px hsl(var(--h) 62% 50% / .17),inset 3px 0 0 hsl(var(--h) 66% 56%);
+    color:hsl(var(--h) 52% 28%);transition:transform .14s,box-shadow .14s;
+    animation:rise .3s ease-out both}
+  .course p{font-size:10.5px;font-weight:650;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .course span{font-size:8.5px;opacity:.75;display:block;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .course:hover{transform:translateY(-1.5px);box-shadow:inset 0 0 0 1px hsl(var(--h) 62% 50% / .28),inset 3px 0 0 hsl(var(--h) 66% 56%),0 6px 16px hsl(var(--h) 50% 40% / .2)}
+  .course:active{transform:scale(.955)}
+  .screen.dark .course{background:hsl(var(--h) 62% 54% / .17);box-shadow:inset 0 0 0 1px hsl(var(--h) 58% 60% / .19),inset 3px 0 0 hsl(var(--h) 60% 62%);color:hsl(var(--h) 70% 79%)}
+  .screen.dark .course:hover{box-shadow:inset 0 0 0 1px hsl(var(--h) 58% 60% / .34),inset 3px 0 0 hsl(var(--h) 60% 62%),0 6px 16px rgba(0,0,0,.45)}
+
+  .csplit{margin:2px;border-radius:11px;padding:5px 4px;overflow:hidden;cursor:pointer;position:relative;
+    background:hsl(var(--h) 68% 53% / .125);box-shadow:inset 0 0 0 1px hsl(var(--h) 62% 50% / .17),inset 0 2.5px 0 hsl(var(--h) 66% 56%);
+    color:hsl(var(--h) 52% 28%);transition:.14s;animation:rise .3s ease-out both}
+  .csplit p{writing-mode:vertical-rl;font-size:9.5px;font-weight:650;letter-spacing:1px;margin:0 auto;max-height:100%;overflow:hidden}
+  .screen.dark .csplit{background:hsl(var(--h) 62% 54% / .17);box-shadow:inset 0 0 0 1px hsl(var(--h) 58% 60% / .19),inset 0 2.5px 0 hsl(var(--h) 60% 62%);color:hsl(var(--h) 70% 79%)}
+  .csplit:active{transform:scale(.95)}
+
+  .fab{position:absolute;right:18px;bottom:22px;width:52px;height:52px;border-radius:17px;border:0;cursor:pointer;
+    background:linear-gradient(140deg,var(--accent),#7B92FF);color:#fff;font-size:24px;font-weight:300;
+    box-shadow:0 8px 22px rgba(76,111,255,.45);transition:.18s;z-index:40}
+  .fab:active{transform:scale(.9)}
+
+  /* 背景设置弹层（主页内） */
+  .bgsheet{position:absolute;left:10px;right:10px;bottom:14px;background:var(--surface);border-radius:22px;padding:16px 18px 14px;z-index:55;
+    box-shadow:0 -6px 40px rgba(9,12,20,.25);animation:pop .28s cubic-bezier(.2,.9,.3,1.1) both;display:none}
+  .bgsheet.show{display:block}
+  .bgsheet h4{font-size:13.5px;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+  .bgsheet h4 button{border:0;background:var(--surface2);color:var(--text2);width:26px;height:26px;border-radius:9px;cursor:pointer;font-size:12px}
+  .swrow{display:flex;gap:9px;margin:12px 0 4px}
+  .sw{width:52px;height:38px;border-radius:11px;cursor:pointer;border:2px solid transparent;transition:.15s;position:relative;overflow:hidden}
+  .sw.on{border-color:var(--accent);box-shadow:0 0 0 3px hsl(228 100% 65% / .18)}
+  .sw::after{content:attr(data-n);position:absolute;left:0;right:0;bottom:0;font-size:8px;text-align:center;color:#fff;background:rgba(0,0,0,.28);padding:1px 0}
+  .mslider{width:100%;accent-color:var(--accent);margin-top:10px}
+  .mslabel{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-top:10px}
+  .mslabel b{color:var(--accent);font-variant-numeric:tabular-nums}
+
+  /* ================= 课程详情弹窗 ================= */
+  .mask{position:absolute;inset:0;background:rgba(8,10,15,.45);z-index:70;opacity:0;pointer-events:none;transition:.22s;backdrop-filter:blur(2px)}
+  .mask.show{opacity:1;pointer-events:auto}
+  .detail{position:absolute;left:12px;right:12px;bottom:16px;background:var(--surface);border-radius:24px;padding:20px;z-index:71;
+    transform:translateY(30px) scale(.97);opacity:0;pointer-events:none;transition:.26s cubic-bezier(.2,.9,.3,1.05);box-shadow:0 18px 50px rgba(8,10,16,.35)}
+  .detail.show{transform:none;opacity:1;pointer-events:auto}
+  .detail .tag{font-size:10px;font-weight:700;padding:3px 9px;border-radius:8px;background:hsl(var(--h) 70% 55% / .16);color:hsl(var(--h) 55% 42%)}
+  .dark .detail .tag{color:hsl(var(--h) 80% 78%)}
+  .detail h3{font-size:19px;font-weight:750;margin-top:8px}
+  .detail .sub{font-size:11.5px;color:var(--text2);margin-top:2px}
+  .detail dl{display:grid;grid-template-columns:auto 1fr;gap:7px 14px;font-size:12.5px;margin-top:14px}
+  .detail dt{color:var(--text3)}
+  .detail dd{color:var(--text);font-weight:550}
+
+  /* ================= 页面容器（切换动画） ================= */
+  .page{position:absolute;inset:0;display:flex;flex-direction:column;animation:slideL .26s ease-out both}
+  .page[hidden]{display:none}
+
+  /* ================= 课表管理页 ================= */
+  .pghead{display:flex;align-items:center;gap:10px;padding:10px 16px 6px}
+  .pghead h2{font-size:19px;font-weight:750;flex:1}
+  .back{width:34px;height:34px;border-radius:11px;border:0;background:var(--surface2);color:var(--text);font-size:16px;cursor:pointer;transition:.15s}
+  .back:active{transform:scale(.88)}
+  .cards{flex:1;overflow-y:auto;padding:8px 14px 90px;display:flex;flex-direction:column;gap:11px}
+  .tcard{background:var(--surface);border-radius:19px;padding:15px 16px;position:relative;cursor:pointer;
+    box-shadow:0 1px 3px rgba(9,12,20,.05),0 6px 18px rgba(9,12,20,.06);transition:.16s;animation:rise .32s ease-out both}
+  .tcard:hover{transform:translateY(-1.5px)}
+  .tcard:active{transform:scale(.975)}
+  .tcard.cur{box-shadow:0 0 0 1.5px var(--accent),0 8px 24px hsl(228 100% 65% / .16)}
+  .tcard .row1{display:flex;align-items:center;gap:8px}
+  .tcard h3{font-size:15px;font-weight:700;flex:1}
+  .badge{font-size:9.5px;font-weight:700;padding:2.5px 8px;border-radius:7px;background:hsl(228 100% 65% / .14);color:var(--accent)}
+  .tcard .meta{font-size:11px;color:var(--text2);margin-top:5px;display:flex;gap:10px;flex-wrap:wrap}
+  .tcard .meta i{font-style:normal;display:flex;align-items:center;gap:4px}
+  .dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+  .tcard .more{position:absolute;right:12px;bottom:12px;width:28px;height:28px;border-radius:9px;border:0;background:transparent;color:var(--text3);cursor:pointer;font-size:15px}
+  .tcard .more:hover{background:var(--surface2)}
+  .newcard{border:1.5px dashed var(--line);background:transparent;border-radius:19px;padding:15px;text-align:center;color:var(--text2);font-size:13px;cursor:pointer;transition:.16s;font-weight:600}
+  .newcard:hover{color:var(--accent);border-color:var(--accent)}
+  .newcard:active{transform:scale(.98)}
+  .toast{position:absolute;left:50%;bottom:96px;transform:translateX(-50%);background:rgba(15,18,26,.92);color:#fff;font-size:12px;
+    padding:9px 18px;border-radius:12px;z-index:80;animation:toastIn .22s ease-out;white-space:nowrap;pointer-events:none}
+
+  /* ================= 设置页 ================= */
+  .setgrp{margin:6px 14px;background:var(--surface);border-radius:18px;overflow:hidden}
+  .setitem{display:flex;align-items:center;gap:12px;padding:13px 15px;border-bottom:.5px solid var(--line);cursor:pointer;transition:.14s}
+  .setitem:last-child{border-bottom:0}
+  .setitem:hover{background:var(--surface2)}
+  .setitem:active{transform:scale(.985)}
+  .sic{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;font-size:15px;flex:0 0 auto}
+  .setitem .tx{flex:1}
+  .setitem .tx b{font-size:13.5px;font-weight:650;display:block}
+  .setitem .tx span{font-size:10.5px;color:var(--text3);display:block;margin-top:1.5px}
+  .setitem .arr{color:var(--text3);font-size:13px}
+  .setitem .val{font-size:11.5px;color:var(--text3)}
+
+  /* ================= 内置浏览器导入 ================= */
+  .steps{display:flex;gap:5px;padding:4px 18px 0}
+  .steps i{flex:1;height:3.5px;border-radius:3px;background:var(--surface3);transition:.25s}
+  .steps i.on{background:var(--accent)}
+  .wiz{flex:1;overflow-y:auto;padding:16px 18px 100px;animation:slideL .24s ease-out both}
+  .wiz h3{font-size:17px;font-weight:750}
+  .wiz .lead{font-size:11.5px;color:var(--text2);line-height:1.7;margin-top:4px}
+  .srccard{display:flex;align-items:center;gap:11px;padding:13px 14px;border-radius:15px;border:1.5px solid var(--line);margin-top:10px;cursor:pointer;transition:.15s;background:var(--surface)}
+  .srccard.on{border-color:var(--accent);box-shadow:0 0 0 3px hsl(228 100% 65% / .13)}
+  .srccard .tx b{font-size:13.5px;font-weight:700;display:block}
+  .srccard .tx span{font-size:10.5px;color:var(--text3);display:block;margin-top:1px}
+  .zero{display:flex;gap:8px;align-items:center;margin-top:14px;padding:10px 13px;border-radius:13px;background:hsl(152 60% 45% / .1);font-size:10.5px;color:hsl(152 45% 32%);line-height:1.5}
+  .dark .zero{color:hsl(152 55% 68%)}
+  .zero b{font-weight:700}
+  .urlbox{margin-top:12px;display:flex;gap:8px}
+  .urlbox input{flex:1;border:1.5px solid var(--line);background:var(--surface);border-radius:12px;padding:10px 13px;font:inherit;font-size:12px;color:var(--text);outline:0}
+  .urlbox input:focus{border-color:var(--accent)}
+  .btn{border:0;border-radius:12px;padding:10px 16px;font:inherit;font-size:12.5px;font-weight:650;cursor:pointer;transition:.15s}
+  .btn.primary{background:linear-gradient(140deg,var(--accent),#7B92FF);color:#fff;box-shadow:0 5px 16px hsl(228 100% 65% / .3)}
+  .btn:active{transform:scale(.95)}
+  .btn.ghost{background:var(--surface2);color:var(--text)}
+  .wizbot{position:absolute;left:0;right:0;bottom:0;padding:12px 18px 20px;display:flex;gap:10px;background:linear-gradient(transparent,var(--bg) 42%)}
+  .wizbot .btn{flex:1;padding:13px}
+  .howto{margin-top:14px;border-radius:15px;background:var(--surface);padding:14px 15px}
+  .howto ol{margin-left:17px;font-size:11.5px;color:var(--text2);line-height:2}
+  .howto b{color:var(--text)}
+  .howto .kbd{display:inline-block;background:var(--surface3);border-radius:5px;padding:0 6px;font-size:10.5px;color:var(--text);font-weight:650}
+
+  /* ================= 内置浏览器导入 ================= */
+  .urlbar{display:flex;align-items:center;gap:8px;background:var(--surface2);border-radius:12px;padding:8px 12px;margin:6px 14px 10px;font-size:11.5px;color:var(--text2)}
+  .urlbar .lk{color:#2FA574;font-size:11px}
+  .urlbar b{color:var(--text);font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .browser{position:absolute;inset:0;display:flex;flex-direction:column;animation:slideL .26s ease-out both}
+  .browser[hidden]{display:none}
+  .fakepage{flex:1;overflow:hidden;position:relative;background:#fff}
+  .jwhead{background:linear-gradient(160deg,#2E7D5B,#256B4D);color:#fff;padding:14px 16px 26px}
+  .jwhead b{font-size:14px;font-weight:700}
+  .jwhead p{font-size:9.5px;opacity:.75;margin-top:2px}
+  .jwtab{background:#F3F6F4;border-radius:10px 10px 0 0;margin:-14px 12px 0;padding:8px 12px;font-size:11px;color:#2E7D5B;font-weight:700;display:flex;gap:14px}
+  .jwtab span.on{color:#1C523A;border-bottom:2px solid #2E7D5B;padding-bottom:4px}
+  .jwtable{margin:0 12px;background:#fff;border:1px solid #DDE7E1;font-size:9px;border-collapse:collapse;table-layout:fixed;width:calc(100% - 24px)}
+  .jwtable th{background:#EAF2ED;color:#1C523A;font-weight:700;padding:5px 2px;border:1px solid #DDE7E1;font-size:9px}
+  .jwtable td{border:1px solid #DDE7E1;padding:5px 3px;color:#33413A;vertical-align:top;line-height:1.45}
+  .jwtable td b{display:block;font-size:9px;color:#1C523A}
+  .jwtable td i{display:block;font-style:normal;color:#7A8A80;font-size:8px}
+  .fab-parse{position:absolute;right:16px;bottom:20px;border:0;border-radius:17px;padding:13px 19px;font:inherit;font-size:13.5px;font-weight:750;color:#fff;cursor:pointer;
+    background:linear-gradient(140deg,var(--accent),#7B92FF);box-shadow:0 10px 26px hsl(228 100% 60% / .5);display:flex;gap:7px;align-items:center;transition:.16s;animation:pop .3s .2s cubic-bezier(.2,.9,.3,1.2) both}
+  .fab-parse:active{transform:scale(.92)}
+  .bhint{position:absolute;left:0;right:0;bottom:74px;text-align:center;font-size:10px;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.4);animation:rise .4s .5s ease-out both}
+  .prevlist{flex:1;overflow-y:auto;padding:10px 14px 100px}
+  .prow{display:flex;gap:9px;align-items:center;background:var(--surface);border-radius:13px;padding:10px 12px;margin-bottom:8px;animation:rise .26s ease-out both}
+  .prow .pc{width:4px;height:30px;border-radius:4px;flex:0 0 auto}
+  .prow .pt b{font-size:12.5px;font-weight:700;display:block}
+  .prow .pt span{font-size:10px;color:var(--text2);display:block;margin-top:1px}
+  .prow.skip{opacity:.62;background:var(--surface2)}
+  .prow.skip .pt span{color:#C29222}
+
+  /* ================= 小组件演示（桌面模拟） ================= */
+  .desktop{position:absolute;inset:0;background:linear-gradient(160deg,#2b3350 0%,#41355e 38%,#7a5570 72%,#c98a6b 100%)}
+  .desktop .deco{position:absolute;border-radius:50%;filter:blur(38px);opacity:.5}
+  .dicons{position:absolute;left:0;right:0;top:52px;display:grid;grid-template-columns:repeat(4,1fr);gap:0;padding:0 14px}
+  .dicon{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .dicon .ig{width:44px;height:44px;border-radius:13px;box-shadow:0 3px 8px rgba(0,0,0,.25);display:grid;place-items:center;color:#fff;font-size:18px}
+  .dicon span{font-size:9px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+  .dpage{position:absolute;left:0;right:0;bottom:14px;display:flex;gap:5px;justify-content:center}
+  .dpage i{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.45)}
+  .dpage i.on{background:#fff}
+  .wlabel{position:absolute;left:0;right:0;text-align:center;font-size:9.5px;color:rgba(255,255,255,.85);text-shadow:0 1px 3px rgba(0,0,0,.5);z-index:5}
+
+  .widget{position:absolute;background:rgba(20,22,30,.72);backdrop-filter:blur(22px);border-radius:26px;
+    box-shadow:0 10px 30px rgba(0,0,0,.35),inset 0 0 0 .5px rgba(255,255,255,.14);cursor:pointer;transition:.18s;overflow:hidden}
+  .widget:hover{transform:translateY(-2px);box-shadow:0 14px 36px rgba(0,0,0,.45),inset 0 0 0 .5px rgba(255,255,255,.2)}
+  .widget:active{transform:scale(.965)}
+  .widget .wh{display:flex;align-items:center;justify-content:space-between;padding:11px 14px 7px}
+  .widget .wh b{font-size:11px;color:#fff;font-weight:700;letter-spacing:.2px}
+  .widget .wh span{font-size:9px;color:rgba(255,255,255,.65)}
+  .witem{margin:0 8px 5px;border-radius:12px;background:rgba(255,255,255,.07);padding:5.5px 9px;display:flex;align-items:center;gap:8px;animation:rise .3s ease-out both}
+  .witem.gone{opacity:.38}
+  .witem.now{background:linear-gradient(120deg,hsl(228 90% 62% / .5),hsl(262 80% 66% / .42));box-shadow:inset 0 0 0 .5px rgba(255,255,255,.22)}
+  .witem .wt{font-size:9px;color:rgba(255,255,255,.72);font-variant-numeric:tabular-nums;width:66px;flex:0 0 auto}
+  .witem .wn{font-size:10.5px;color:#fff;font-weight:650;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .witem .wr{font-size:8.5px;color:rgba(255,255,255,.6);max-width:64px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .witem .wbar{width:3px;height:22px;border-radius:3px;flex:0 0 auto}
+
+  .wnext{padding:6px 16px 12px;display:flex;align-items:center;gap:14px}
+  .ring{width:64px;height:64px;border-radius:50%;flex:0 0 auto;display:grid;place-items:center;position:relative;
+    background:conic-gradient(#8FA5FF 0 62%,rgba(255,255,255,.14) 62% 100%)}
+  .ring::before{content:"";position:absolute;inset:6px;border-radius:50%;background:#151824}
+  .ring b{position:relative;font-size:9px;color:#A9BAFF;font-weight:700;line-height:1.5;text-align:center}
+  .wnext .nx b.d1{display:block;font-size:17px;color:#fff;font-weight:800;letter-spacing:.3px}
+  .wnext .nx b.d2{display:block;font-size:12.5px;color:#fff;font-weight:650;margin-top:2px}
+  .wnext .nx span{display:block;font-size:9.5px;color:rgba(255,255,255,.62);margin-top:3px}
+
+  .wbar4x1{padding:0 16px;height:100%;display:flex;align-items:center;gap:9px}
+  .wbar4x1 .pill{flex:1;display:flex;align-items:center;gap:8px}
+  .wbar4x1 b{font-size:11px;color:#fff;font-weight:700}
+  .wbar4x1 span{font-size:9.5px;color:rgba(255,255,255,.66)}
+  .wbar4x1 .go{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.14);display:grid;place-items:center;color:#fff;font-size:10px}
+
+  /* ================= 底部说明卡 ================= */
+  .fixnotes{max-width:1560px;margin:54px auto 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+  .fnote{background:var(--stage-card);border:1px solid var(--stage-line);border-radius:18px;padding:18px 20px}
+  .fnote h4{font-size:13.5px;font-weight:700;color:#A9BAFF;display:flex;gap:8px;align-items:center}
+  .fnote p{font-size:12px;color:var(--stage-fg2);line-height:1.85;margin-top:8px}
+  .fnote p b{color:var(--stage-fg);font-weight:600}
+  .fnote .num{width:19px;height:19px;border-radius:6px;background:rgba(107,138,255,.2);color:#93A8FF;display:grid;place-items:center;font-size:10px;font-weight:700;flex:0 0 auto}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">O</div>
+    <div>
+      <h1>Obsession · 界面原型 v0.3</h1>
+      <p>背景自定义 / 课表管理 / 小组件重绘 / 交互动画 / 内置浏览器导入 —— 验证通过前不写一行 Android 代码</p>
+    </div>
+  </div>
+  <div class="theme-switch">
+    <button class="tbtn active" data-theme="light">柔光</button>
+    <button class="tbtn" data-theme="dark">墨影</button>
+  </div>
+</header>
+
+<div class="hint">
+  <b>怎么看这份原型：</b>每台"手机"都能点。① 主页点右上角 ⋮ 调出<b>背景设置</b>（换背景图 + 拖滑块调蒙层）；② 课程块可点（带按压动画与弹窗过渡）；③ 管理页可<b>切换学期课表</b>；④ 第 3 台手机演示<b>内置浏览器导入</b>：输入网址 → 模拟登录课表页 → 点悬浮「解析此页」→ 直接出预览；⑤ 桌面上的小组件是<b>重绘后的圆角版</b>，点它会模拟"打开 App"。
+</div>
+
+<div class="frames">
+
+  <!-- ============ ① 课表主页：背景自定义 + 动画 ============ -->
+  <div class="frame">
+    <div class="ftitle"><i>1</i>课表主页 · 自定义背景与交互</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen light" id="s1">
+        <div class="statusbar"><span>6:11</span><span class="r">📶 🔋</span></div>
+
+        <!-- 页面A：课表 -->
+        <div class="page" id="p1-home">
+          <div class="apphead">
+            <div class="sem">2026-2027 学年 · 秋季学期</div>
+            <div class="wk">
+              <div>
+                <h2 id="wkn">第 1 周</h2>
+                <div class="dt" id="wkd">9月14日 – 20日</div>
+              </div>
+              <div class="wknav">
+                <button class="iconbtn" onclick="switchWeek(-1)">‹</button>
+                <button class="iconbtn" onclick="switchWeek(1)">›</button>
+                <button class="iconbtn" onclick="openBg()" title="背景设置">⋮</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="gridwrap">
+            <div class="bg-layer" id="bgLayer"></div>
+            <div class="bg-mask" id="bgMask" style="opacity:.88"></div>
+            <div class="grid" id="grid">
+              <!-- 表头 -->
+              <div class="gcell dow" style="grid-column:1;grid-row:1"><span class="d" style="font-size:10px;color:var(--text3)">节</span></div>
+              <div class="gcell dow today" style="grid-column:2;grid-row:1"><span class="d">一</span><span class="dd">14</span></div>
+              <div class="gcell dow" style="grid-column:3;grid-row:1"><span class="d">二</span><span class="dd">15</span></div>
+              <div class="gcell dow" style="grid-column:4;grid-row:1"><span class="d">三</span><span class="dd">16</span></div>
+              <div class="gcell dow" style="grid-column:5;grid-row:1"><span class="d">四</span><span class="dd">17</span></div>
+              <div class="gcell dow" style="grid-column:6;grid-row:1"><span class="d">五</span><span class="dd">18</span></div>
+              <div class="gcell dow" style="grid-column:7;grid-row:1"><span class="d">六</span><span class="dd">19</span></div>
+              <div class="gcell dow" style="grid-column:8;grid-row:1"><span class="d">日</span><span class="dd">20</span></div>
+              <!-- 时间列 + 网格 -->
+              <div class="gcell timecol" style="grid-column:1;grid-row:2"><span class="n">1</span><span class="t">08:00</span></div>
+              <div class="gcell" style="grid-column:2;grid-row:2"></div><div class="gcell" style="grid-column:3;grid-row:2"></div><div class="gcell" style="grid-column:4;grid-row:2"></div><div class="gcell" style="grid-column:5;grid-row:2"></div><div class="gcell" style="grid-column:6;grid-row:2"></div><div class="gcell" style="grid-column:7;grid-row:2"></div><div class="gcell" style="grid-column:8;grid-row:2"></div>
+              <div class="gcell timecol" style="grid-column:1;grid-row:3"><span class="n">2</span><span class="t">08:55</span></div>
+              <div class="gcell" style="grid-column:2;grid-row:3"></div><div class="gcell" style="grid-column:3;grid-row:3"></div><div class="gcell" style="grid-column:4;grid-row:3"></div><div class="gcell" style="grid-column:5;grid-row:3"></div><div class="gcell" style="grid-column:6;grid-row:3"></div><div class="gcell" style="grid-column:7;grid-row:3"></div><div class="gcell" style="grid-column:8;grid-row:3"></div>
+              <div class="gcell timecol" style="grid-column:1;grid-row:4"><span class="n">3</span><span class="t">10:00</span></div>
+              <div class="gcell" style="grid-column:2;grid-row:4"></div><div class="gcell" style="grid-column:3;grid-row:4"></div><div class="gcell" style="grid-column:4;grid-row:4"></div><div class="gcell" style="grid-column:5;grid-row:4"></div><div class="gcell" style="grid-column:6;grid-row:4"></div><div class="gcell" style="grid-column:7;grid-row:4"></div><div class="gcell" style="grid-column:8;grid-row:4"></div>
+              <div class="gcell timecol" style="grid-column:1;grid-row:5"><span class="n">4</span><span class="t">10:55</span></div>
+              <div class="gcell" style="grid-column:2;grid-row:5"></div><div class="gcell" style="grid-column:3;grid-row:5"></div><div class="gcell" style="grid-column:4;grid-row:5"></div><div class="gcell" style="grid-column:5;grid-row:5"></div><div class="gcell" style="grid-column:6;grid-row:5"></div><div class="gcell" style="grid-column:7;grid-row:5"></div><div class="gcell" style="grid-column:8;grid-row:5"></div>
+              <div class="gcell timecol" style="grid-column:1;grid-row:6"><span class="n">5</span><span class="t">14:00</span></div>
+              <div class="gcell" style="grid-column:2;grid-row:6"></div><div class="gcell" style="grid-column:3;grid-row:6"></div><div class="gcell" style="grid-column:4;grid-row:6"></div><div class="gcell" style="grid-column:5;grid-row:6"></div><div class="gcell" style="grid-column:6;grid-row:6"></div><div class="gcell" style="grid-column:7;grid-row:6"></div><div class="gcell" style="grid-column:8;grid-row:6"></div>
+              <div class="gcell timecol" style="grid-column:1;grid-row:7"><span class="n">6</span><span class="t">14:55</span></div>
+              <div class="gcell" style="grid-column:2;grid-row:7"></div><div class="gcell" style="grid-column:3;grid-row:7"></div><div class="gcell" style="grid-column:4;grid-row:7"></div><div class="gcell" style="grid-column:5;grid-row:7"></div><div class="gcell" style="grid-column:6;grid-row:7"></div><div class="gcell" style="grid-column:7;grid-row:7"></div><div class="gcell" style="grid-column:8;grid-row:7"></div>
+              <div class="gcell timecol" style="grid-column:1;grid-row:8"><span class="n">7</span><span class="t">16:00</span></div>
+              <div class="gcell" style="grid-column:2;grid-row:8"></div><div class="gcell" style="grid-column:3;grid-row:8"></div><div class="gcell" style="grid-column:4;grid-row:8"></div><div class="gcell" style="grid-column:5;grid-row:8"></div><div class="gcell" style="grid-column:6;grid-row:8"></div><div class="gcell" style="grid-column:7;grid-row:8"></div><div class="gcell" style="grid-column:8;grid-row:8"></div>
+              <div class="gcell timecol" style="grid-column:1;grid-row:9"><span class="n">8</span><span class="t">16:55</span></div>
+              <div class="gcell" style="grid-column:2;grid-row:9"></div><div class="gcell" style="grid-column:3;grid-row:9"></div><div class="gcell" style="grid-column:4;grid-row:9"></div><div class="gcell" style="grid-column:5;grid-row:9"></div><div class="gcell" style="grid-column:6;grid-row:9"></div><div class="gcell" style="grid-column:7;grid-row:9"></div><div class="gcell" style="grid-column:8;grid-row:9"></div>
+              <div class="gcell timecol" style="grid-column:1;grid-row:10"><span class="n">9</span><span class="t">19:00</span></div>
+              <div class="gcell" style="grid-column:2;grid-row:10"></div><div class="gcell" style="grid-column:3;grid-row:10"></div><div class="gcell" style="grid-column:4;grid-row:10"></div><div class="gcell" style="grid-column:5;grid-row:10"></div><div class="gcell" style="grid-column:6;grid-row:10"></div><div class="gcell" style="grid-column:7;grid-row:10"></div><div class="gcell" style="grid-column:8;grid-row:10"></div>
+              <div class="gcell timecol" style="grid-column:1;grid-row:11"><span class="n">10</span><span class="t">19:55</span></div>
+              <div class="gcell" style="grid-column:2;grid-row:11"></div><div class="gcell" style="grid-column:3;grid-row:11"></div><div class="gcell" style="grid-column:4;grid-row:11"></div><div class="gcell" style="grid-column:5;grid-row:11"></div><div class="gcell" style="grid-column:6;grid-row:11"></div><div class="gcell" style="grid-column:7;grid-row:11"></div><div class="gcell" style="grid-column:8;grid-row:11"></div>
+
+              <!-- 课程（演示用一屏放得下的量） -->
+              <div class="course" style="--h:220;grid-column:2;grid-row:2/span 2" onclick="detail(this)"><p>高等数学</p><span>A-201 · 张伟</span></div>
+              <div class="course" style="--h:152;grid-column:2;grid-row:4/span 2" onclick="detail(this)"><p>大学英语</p><span>B-105 · 李娜</span></div>
+              <div class="course" style="--h:268;grid-column:3;grid-row:2/span 2" onclick="detail(this)"><p>计算机组成原理</p><span>C-402 · 郭倩</span></div>
+              <div style="grid-column:4;grid-row:4/span 2;display:flex">
+                <div class="csplit" style="--h:28;flex:1" onclick="detail(this)"><p>操作系统</p></div>
+                <div class="csplit" style="--h:330;flex:1" onclick="detail(this)"><p>软件工程</p></div>
+              </div>
+              <div class="course" style="--h:188;grid-column:5;grid-row:2/span 2" onclick="detail(this)"><p>现代通信技术</p><span>B-203 · 许欣</span></div>
+              <div class="course" style="--h:354;grid-column:5;grid-row:7/span 2" onclick="detail(this)"><p>形势与政策</p><span>D-101 · 王老师</span></div>
+              <div class="course" style="--h:42;grid-column:6;grid-row:4/span 2" onclick="detail(this)"><p>虚拟现实技术</p><span>实验楼 · 吕文官</span></div>
+              <div class="course" style="--h:220;grid-column:7;grid-row:2/span 2" onclick="detail(this)"><p>大学体育</p><span>体育馆 · 郭老师</span></div>
+            </div>
+          </div>
+
+          <button class="fab" onclick="toast('正式版：弹出添加课程编辑器')">+</button>
+
+          <!-- 背景设置弹层 -->
+          <div class="bgsheet" id="bgsheet">
+            <h4>课表背景 <button onclick="closeBg()">✕</button></h4>
+            <div class="swrow">
+              <div class="sw" data-n="无背景" data-bg="" style="background:var(--surface2)" onclick="pickBg(this)"></div>
+              <div class="sw on" data-n="晚霞" data-bg="linear-gradient(155deg,#8EC5FC 0%,#E0C3FC 45%,#FDCB9E 100%)" onclick="pickBg(this)"></div>
+              <div class="sw" data-n="深海" data-bg="linear-gradient(160deg,#0F2027 0%,#203A43 55%,#2C5364 100%)" onclick="pickBg(this)"></div>
+              <div class="sw" data-n="樱粉" data-bg="linear-gradient(150deg,#FFDEE9 0%,#B5FFFC 100%)" onclick="pickBg(this)"></div>
+              <div class="sw" data-n="山峦" data-bg="linear-gradient(180deg,#ABDCFF 0%,#78A7EB 55%,#4B6CB7 100%)" onclick="pickBg(this)"></div>
+            </div>
+            <div class="mslabel"><span>蒙层浓度（保证课程可读）</span><b id="msv">88%</b></div>
+            <input class="mslider" type="range" min="20" max="100" value="88" oninput="setMask(this.value)">
+            <p style="font-size:10px;color:var(--text3);line-height:1.6;margin-top:8px">正式版支持从相册选自己的图片，这里用渐变示意。浅色主题盖白蒙层、深色主题盖黑蒙层，自动跟随。</p>
+          </div>
+        </div>
+
+        <!-- 页面B：课程详情弹窗由 JS 填充 -->
+        <div class="mask" id="mask" onclick="closeDetail()"></div>
+        <div class="detail" id="detailBox" style="--h:220">
+          <span class="tag" id="dtTag">课程</span>
+          <h3 id="dtT">课程名</h3>
+          <p class="sub" id="dtW">星期 · 节次</p>
+          <dl>
+            <dt>时间</dt><dd id="dtX">--</dd>
+            <dt>地点</dt><dd id="dtR">--</dd>
+          </dl>
+        </div>
+
+        <!-- 页面C：课表管理 -->
+        <div class="page" id="p1-mgr" hidden>
+          <div class="pghead">
+            <button class="back" onclick="showPage('p1-home')">‹</button>
+            <h2>课表管理</h2>
+          </div>
+          <div class="cards">
+            <div class="tcard cur" onclick="switchTimetable(this,'2026-2027 秋季学期')">
+              <div class="row1"><h3>2026-2027 秋季学期</h3><span class="badge">使用中</span></div>
+              <div class="meta">
+                <i><span class="dot" style="background:hsl(220 68% 53%)"></span>22 门课</i>
+                <i>第 1 周起 · 9月14日</i><i>共 20 周</i>
+              </div>
+              <button class="more" onclick="event.stopPropagation();toast('正式版：重命名 / 删除 / 复制')">⋯</button>
+            </div>
+            <div class="tcard" style="animation-delay:.05s" onclick="switchTimetable(this,'2025-2026 春季学期')">
+              <div class="row1"><h3>2025-2026 春季学期</h3></div>
+              <div class="meta">
+                <i><span class="dot" style="background:hsl(188 70% 48%)"></span>19 门课</i>
+                <i>第 1 周起 · 3月2日</i><i>共 18 周</i>
+              </div>
+              <button class="more" onclick="event.stopPropagation();toast('正式版：重命名 / 删除 / 复制')">⋯</button>
+            </div>
+            <div class="tcard" style="animation-delay:.1s" onclick="switchTimetable(this,'2025-2026 秋季学期')">
+              <div class="row1"><h3>2025-2026 秋季学期</h3></div>
+              <div class="meta">
+                <i><span class="dot" style="background:hsl(28 90% 58%)"></span>21 门课</i>
+                <i>第 1 周起 · 9月8日</i><i>共 20 周</i>
+              </div>
+              <button class="more" onclick="event.stopPropagation();toast('正式版：重命名 / 删除 / 复制')">⋯</button>
+            </div>
+            <div class="newcard" style="animation-delay:.15s" onclick="toast('正式版：新建空课表或从文件导入')">＋ 新建课表</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="fcap">点右上角 <b>⋮</b> 换背景、拖滑块调蒙层；点 <b>‹ ›</b> 看周切换滑动动画；<b>课程块</b>有按压反馈和弹窗过渡；从 ⋮ 菜单可进<b>课表管理</b>（原型里点学期卡片试试切换）。</div>
+  </div>
+
+  <!-- ============ ② 设置页 ============ -->
+  <div class="frame">
+    <div class="ftitle"><i>2</i>设置 · 各功能入口</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen light">
+        <div class="statusbar"><span>6:11</span><span class="r">📶 🔋</span></div>
+        <div class="pghead"><h2>设置</h2></div>
+        <div style="flex:1;overflow-y:auto;padding-bottom:20px">
+          <div class="setgrp">
+            <div class="setitem" onclick="toast('正式版：进入课表管理页')">
+              <div class="sic" style="background:hsl(228 100% 65% / .13);color:#5B7CFF">🗂</div>
+              <div class="tx"><b>课表管理</b><span>多学期课表 · 切换 / 新建 / 重命名 / 删除</span></div>
+              <span class="arr">›</span>
+            </div>
+            <div class="setitem" onclick="toast('正式版：选择相册图片或内置背景')">
+              <div class="sic" style="background:hsl(330 72% 62% / .13);color:#D65A9E">🖼</div>
+              <div class="tx"><b>课表背景</b><span>自定义图片 · 蒙层浓度调节</span></div>
+              <span class="val">晚霞</span><span class="arr">›</span>
+            </div>
+            <div class="setitem" onclick="toast('正式版：学期设置（已有功能）')">
+              <div class="sic" style="background:hsl(152 60% 45% / .13);color:#2FA574">📅</div>
+              <div class="tx"><b>学期设置</b><span>学期名 · 第一周起始日 · 总周数</span></div>
+              <span class="arr">›</span>
+            </div>
+            <div class="setitem" onclick="toast('正式版：作息时间编辑（已有功能）')">
+              <div class="sic" style="background:hsl(28 90% 58% / .13);color:#D97F2E">⏰</div>
+              <div class="tx"><b>每节课时间</b><span>12 节 · 08:00 – 21:40</span></div>
+              <span class="arr">›</span>
+            </div>
+          </div>
+          <div class="setgrp">
+            <div class="setitem" onclick="toast('正式版：进入内置浏览器导入（见第 3 台手机）')">
+              <div class="sic" style="background:hsl(268 62% 62% / .13);color:#8B5CD6">🧭</div>
+              <div class="tx"><b>从教务系统导入</b><span>内置浏览器 · 登录后一键解析此页</span></div>
+              <span class="arr">›</span>
+            </div>
+            <div class="setitem" onclick="toast('正式版：文件选择器（已有功能）')">
+              <div class="sic" style="background:hsl(188 70% 48% / .13);color:#2E9BB5">📥</div>
+              <div class="tx"><b>直接导入课表文件</b><span>教务页另存的 HTML · 本应用备份</span></div>
+              <span class="arr">›</span>
+            </div>
+            <div class="setitem" onclick="toast('正式版：导出当前课表（已有功能）')">
+              <div class="sic" style="background:hsl(42 82% 52% / .15);color:#C29222">📤</div>
+              <div class="tx"><b>导出当前课表</b><span>分享给同学 · 换机迁移</span></div>
+              <span class="arr">›</span>
+            </div>
+          </div>
+          <div class="setgrp">
+            <div class="setitem" onclick="toast('正式版：关于页')">
+              <div class="sic" style="background:hsl(354 78% 62% / .13);color:#D65A6E">ℹ️</div>
+              <div class="tx"><b>关于 Obsession</b><span>版本 0.3.0 · 零广告 · 零权限 · 纯本地</span></div>
+              <span class="arr">›</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="fcap">设置按功能分组：<b>课表管理</b>与<b>背景</b>是本期新增，导入拆成「引导式」与「直接选文件」两条路。</div>
+  </div>
+
+  <!-- ============ ③ 内置浏览器导入 ============ -->
+  <div class="frame">
+    <div class="ftitle"><i>3</i>内置浏览器导入 · 两步直达</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen light">
+        <div class="statusbar"><span>6:11</span><span class="r">📶 🔋</span></div>
+
+        <!-- 状态0：入口 -->
+        <div class="page" id="br0">
+          <div class="pghead"><h2>从教务系统导入</h2></div>
+          <div style="flex:1;overflow-y:auto;padding:2px 18px 30px">
+            <p class="lead" style="font-size:11.5px;color:var(--text2);line-height:1.7;margin-top:2px">在 App 内打开教务网站，登录后查到课表，<b style="color:var(--text)">点右下角「解析此页」</b>即可——不再需要另存文件、找文件、分享。</p>
+            <div class="urlbox" style="margin-top:14px">
+              <input placeholder="教务网址，如 jw.xxx.edu.cn" value="jw.sxit.edu.cn">
+              <button class="btn primary" onclick="brGo(1)">打开</button>
+            </div>
+            <div style="font-size:10px;color:var(--text3);margin-top:10px;line-height:1.8">
+              · 登录在教务系统的网页里完成，<b style="color:var(--text)">账号密码不经过 App</b><br>
+              · 登录态（Cookie）导入完成即清除，不落盘<br>
+              · 「直接选 HTML 文件」入口保留，作为兜底
+            </div>
+            <div class="zero" style="background:hsl(38 90% 55% / .12);color:hsl(28 60% 38%)">
+              ⚠️ <span><b>权限变化（需要你知道）：</b>内置浏览器联网必须在权限清单里加一条 <b>INTERNET</b>——这是 App 唯一新增的权限，仅用于加载你填的教务网页。无存储、无定位、无任何数据上传。</span>
+            </div>
+            <div class="howto" style="margin-top:12px">
+              <ol>
+                <li><b>验证码？</b>正常显示、正常输，和浏览器里一样</li>
+                <li><b>旧版教务？</b>同样适用，页面能显示就能解析</li>
+                <li><b>学校系统打不开？</b>退回「直接选文件」老路，不受影响</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+
+        <!-- 状态1：内置浏览器 -->
+        <div class="browser" id="br1" hidden>
+          <div class="urlbar"><span class="lk">🔒</span><b>jw.sxit.edu.cn/xskbcx</b><span>⟳</span><span>⋯</span></div>
+          <div class="fakepage">
+            <div class="jwhead"><b>示例大学教务系统</b><p>学生课表查询 · 2026-2027学年第1学期</p></div>
+            <div class="jwtab"><span class="on">课表</span><span>考试安排</span><span>成绩</span></div>
+            <table class="jwtable">
+              <tr><th style="width:9%">节次</th><th>周一</th><th>周二</th><th>周三</th><th>周四</th></tr>
+              <tr><td>1-2</td><td><b>计算机组成原理</b><i>1-12周 C-402</i></td><td><b>现代通信技术</b><i>1-12周 B-203</i></td><td></td><td><b>现代通信技术</b><i>13-14周</i></td></tr>
+              <tr><td>3-4</td><td><b>软件工程</b><i>13-14周</i></td><td><b>软件工程/操作系统</b><i>1-12周</i></td><td><b>操作系统</b><i>1-14周</i></td><td><b>形势与政策</b><i>8-12周</i></td></tr>
+              <tr><td>6-7</td><td></td><td><b>大学体育</b><i>1-8周</i></td><td></td><td></td></tr>
+            </table>
+            <button class="fab-parse" onclick="brGo(2)">⚡ 解析此页</button>
+            <div class="bhint">登录后看到完整课表 → 点右下角按钮，App 直接读当前页面</div>
+          </div>
+        </div>
+
+        <!-- 状态2：导入预览 -->
+        <div class="page" id="br2" hidden>
+          <div class="pghead">
+            <button class="back" onclick="brGo(1)">‹</button>
+            <h2>导入预览</h2>
+          </div>
+          <div style="padding:0 16px 4px;font-size:10.5px;color:var(--text2);line-height:1.6">
+            来源 <b style="color:var(--text)">内置浏览器 · 正方新版</b> · UTF-8 · 2026-2027 秋季学期 · 解析到 <b style="color:var(--accent)">22 门</b>
+          </div>
+          <div class="prevlist">
+            <div class="prow" style="animation-delay:.02s"><span class="pc" style="background:hsl(220 68% 53%)"></span><div class="pt"><b>计算机组成原理</b><span>周一 8-9节 · 1-12周 · C-402 · 郭倩</span></div></div>
+            <div class="prow" style="animation-delay:.06s"><span class="pc" style="background:hsl(28 90% 58%)"></span><div class="pt"><b>软件工程</b><span>周二 1-2节 · 13-14周 · 李老师</span></div></div>
+            <div class="prow" style="animation-delay:.1s"><span class="pc" style="background:hsl(330 72% 62%)"></span><div class="pt"><b>现代通信技术</b><span>周二 1-2节 · 1-12周 · B-203 · 许欣</span></div></div>
+            <div class="prow" style="animation-delay:.14s"><span class="pc" style="background:hsl(152 60% 45%)"></span><div class="pt"><b>操作系统</b><span>周三 3-4节 · 1-14周 · 曹俊斌</span></div></div>
+            <div class="prow" style="animation-delay:.18s"><span class="pc" style="background:hsl(268 62% 62%)"></span><div class="pt"><b>大学体育</b><span>周二 6-7节 · 1-8周 · 郭老师</span></div></div>
+            <div class="prow skip" style="animation-delay:.22s"><div class="pt"><b>实践课程：操作系统课程设计</b><span>⚠ 无星期/节次 · 不导入，仅提示</span></div></div>
+            <p style="font-size:10px;color:var(--text3);line-height:1.7;margin:6px 2px">……共 22 条，滚动查看全部。作息时间不会被改动；最晚周次超出总周数时自动放宽。</p>
+          </div>
+          <div class="wizbot">
+            <button class="btn ghost" onclick="toast('已取消，未改动课表')">取消</button>
+            <button class="btn primary" onclick="toast('22 门课程已写入「2026-2027 秋季学期」')">替换导入</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="fcap">两步直达：<b>App 内登录 → 点「解析此页」</b>。「另存文件、找文件、分享」三步全部消失。账号密码只在教务网页里输，App 不碰不存；Cookie 即用即清。</div>
+  </div>
+
+  <!-- ============ ④ 桌面小组件（重绘） ============ -->
+  <div class="frame">
+    <div class="ftitle"><i>4</i>桌面小组件 · 圆角重绘</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen" style="--bg:#10131c;background:#10131c">
+        <div class="desktop">
+          <div class="deco" style="width:180px;height:180px;background:#6B8AFF;left:-30px;top:120px"></div>
+          <div class="deco" style="width:220px;height:220px;background:#C98A6B;right:-40px;top:420px"></div>
+          <div class="dicons">
+            <div class="dicon"><div class="ig" style="background:linear-gradient(140deg,#4C6FFF,#7B92FF)">✉</div><span>邮箱</span></div>
+            <div class="dicon"><div class="ig" style="background:linear-gradient(140deg,#2FA574,#5BC896)">🎵</div><span>音乐</span></div>
+            <div class="dicon"><div class="ig" style="background:linear-gradient(140deg,#D97F2E,#F0A95C)">📷</div><span>相机</span></div>
+            <div class="dicon"><div class="ig" style="background:linear-gradient(140deg,#8B5CD6,#B088F0)">🛒</div><span>商店</span></div>
+          </div>
+
+          <span class="wlabel" style="top:130px">4×2 · 今日课表 —— 点击任意处打开 App</span>
+          <div class="widget" style="left:14px;right:14px;top:150px;height:216px" onclick="widgetOpen(this,'今日课表')">
+            <div class="wh"><b>今日 · 9月15日 周二</b><span>共 4 节</span></div>
+            <div class="witem gone" style="animation-delay:.03s">
+              <span class="wbar" style="background:hsl(220 68% 60%)"></span>
+              <span class="wt">08:00–09:40</span><span class="wn">计算机组成原理</span><span class="wr">C-402</span>
+            </div>
+            <div class="witem now" style="animation-delay:.09s">
+              <span class="wbar" style="background:#fff"></span>
+              <span class="wt">10:00–11:40</span><span class="wn">操作系统</span><span class="wr">A-303</span>
+            </div>
+            <div class="witem" style="animation-delay:.15s">
+              <span class="wbar" style="background:hsl(28 90% 60%)"></span>
+              <span class="wt">14:00–15:40</span><span class="wn">软件工程</span><span class="wr">B-203</span>
+            </div>
+            <div class="witem" style="animation-delay:.21s">
+              <span class="wbar" style="background:hsl(330 72% 62%)"></span>
+              <span class="wt">16:00–17:40</span><span class="wn">虚拟现实技术及应用</span><span class="wr">实验楼</span>
+            </div>
+          </div>
+
+          <span class="wlabel" style="top:398px">2×2 · 下一节课</span>
+          <div class="widget" style="left:14px;width:172px;top:418px;height:158px" onclick="widgetOpen(this,'下一节课')">
+            <div class="wnext">
+              <div class="ring"><b>剩<br>18 分钟</b></div>
+              <div class="nx">
+                <b class="d1">14:00</b>
+                <b class="d2">软件工程</b>
+                <span>B-203 · 李老师</span>
+              </div>
+            </div>
+          </div>
+
+          <span class="wlabel" style="top:398px;left:200px">4×1 · 简洁条</span>
+          <div class="widget" style="left:204px;right:14px;top:418px;height:158px" onclick="widgetOpen(this,'简洁条')">
+            <div class="wbar4x1">
+              <div class="pill">
+                <span class="wbar" style="height:30px;background:hsl(28 90% 60%)"></span>
+                <div>
+                  <b>下一节 14:00 软件工程</b><br>
+                  <span>B-203 · 今天还有 3 节课</span>
+                </div>
+              </div>
+              <span class="go">›</span>
+            </div>
+          </div>
+
+          <div class="dpage"><i class="on"></i><i></i><i></i></div>
+        </div>
+      </div>
+    </div>
+    <div class="fcap">新视觉：<b>26px 大圆角</b> + 半透明毛玻璃 + 胶囊课程条，当前节渐变高亮、上过的整条淡化。<b>点任意小组件直接打开 App</b>（正式版行为）。</div>
+  </div>
+</div>
+
+<!-- ============ Bug 修复方案说明 ============ -->
+<div class="fixnotes">
+  <div class="fnote">
+    <h4><span class="num">1</span>小组件「内容不更新」——根因与修法</h4>
+    <p>现状是小组件只在<b>课表数据变化</b>时主动刷新；但「今天」变了（跨天/跨周）不会触发任何事件，于是周二早上你还看着周一的课。系统自带的定时刷新最快也要 30 分钟一跳，指望不上。</p>
+    <p>修法（均不新增权限）：① 监听系统<b>日期变更广播</b>，跨天即刷；② 每天 0 点由系统闹钟兜底刷新一次；③ <b>打开 App 时顺手刷</b>全部小组件；④ 修掉「写库事务未完成就刷新」的时序隐患。</p>
+  </div>
+  <div class="fnote">
+    <h4><span class="num">2</span>点击小组件 → 打开 App</h4>
+    <p>三款小组件全部挂上点击动作：<b>4×2 与 4×1 点击打开主页</b>；<b>2×2 点击直接弹出下一节课详情</b>。这是纯本地跳转（PendingIntent），不涉及任何权限。</p>
+  </div>
+  <div class="fnote">
+    <h4><span class="num">3</span>背景自定义的边界</h4>
+    <p>背景只铺在<b>课表网格区域</b>，页面其余部分保持主题底色——保证头部文字、按钮永远可读。蒙层浓度你说了算（20%–100%），浅色主题盖白蒙层、深色主题盖黑蒙层，<b>课程块文字对比度不达标时自动加深蒙层</b>。</p>
+  </div>
+  <div class="fnote">
+    <h4><span class="num">4</span>课表管理与数据模型</h4>
+    <p>多学期 = 每张课表独立一份课程 + 作息 + 学期配置，<b>切换即整体换库</b>，互不污染。删除有二次确认；「使用中」的课表不能删。导入写进哪张课表，取决于你当前切换到哪张——<b>导入预览页会显示目标课表名</b>，防手滑。</p>
+  </div>
+  <div class="fnote">
+    <h4><span class="num">5</span>内置浏览器与权限边界（重要）</h4>
+    <p>这是 v0.3 唯一的权限变化：权限清单新增 <b>INTERNET</b> 一条（从 1 条变 2 条），仅供内置浏览器加载你填的教务网页。除此之外：无存储、无定位、无通讯录、<b>不做任何数据上传</b>；账号密码只在教务网页表单里输入，App 代码不碰不存；登录态（Cookie）导入完成即清，不落盘。老教务 http 明文站点按需放行。<b>「直接选 HTML 文件」入口保留作兜底</b>——学校系统在内置浏览器里打不开时，退回另存导入的老路。</p>
+  </div>
+</div>
+
+<script>
+  /* ---------- 主题 ---------- */
+  document.querySelectorAll('.tbtn').forEach(function(b){
+    b.onclick = function(){
+      document.querySelectorAll('.tbtn').forEach(function(x){x.classList.remove('active')});
+      b.classList.add('active');
+      document.querySelectorAll('.screen').forEach(function(s){
+        s.classList.remove('light','dark');
+        s.classList.add(b.dataset.theme);
+      });
+      applyBg();
+    };
+  });
+
+  /* ---------- toast ---------- */
+  var toastEl = null;
+  function toast(msg){
+    if(toastEl) toastEl.remove();
+    toastEl = document.createElement('div');
+    toastEl.className = 'toast';
+    toastEl.textContent = msg;
+    document.querySelectorAll('.screen')[0].appendChild(toastEl);
+    setTimeout(function(){ toastEl && toastEl.remove(); }, 1700);
+  }
+
+  /* ---------- 背景自定义 ---------- */
+  var currentBg = 'linear-gradient(155deg,#8EC5FC 0%,#E0C3FC 45%,#FDCB9E 100%)';
+  var currentMask = .88;
+  function pickBg(el){
+    document.querySelectorAll('.sw').forEach(function(x){x.classList.remove('on')});
+    el.classList.add('on');
+    currentBg = el.dataset.bg;
+    applyBg(true);
+  }
+  function setMask(v){
+    currentMask = v/100;
+    document.getElementById('msv').textContent = v + '%';
+    applyBg();
+  }
+  function applyBg(){
+    var layer = document.getElementById('bgLayer');
+    var mask = document.getElementById('bgMask');
+    if(!layer) return;
+    layer.style.background = currentBg;
+    layer.style.display = currentBg ? 'block' : 'none';
+    mask.style.opacity = currentBg ? currentMask : 1;
+    mask.style.display = currentBg ? 'block' : 'none';
+  }
+  function openBg(){ document.getElementById('bgsheet').classList.add('show'); }
+  function closeBg(){ document.getElementById('bgsheet').classList.remove('show'); }
+  applyBg();
+
+  /* ---------- 周切换动画 ---------- */
+  var week = 1;
+  function switchWeek(d){
+    week = Math.min(20, Math.max(1, week + d));
+    document.getElementById('wkn').textContent = '第 ' + week + ' 周';
+    document.getElementById('wkd').textContent = formatRange(week);
+    var g = document.getElementById('grid');
+    g.classList.remove('anim-next','anim-prev');
+    void g.offsetWidth;
+    g.classList.add(d>0 ? 'anim-next' : 'anim-prev');
+  }
+  function formatRange(w){
+    var s = 14 + (w-1)*7, e = s + 6;
+    function f(d){ // 9月14日起算
+      if(d <= 30) return '9月' + d + '日';
+      return '10月' + (d-30) + '日';
+    }
+    return f(s) + ' – ' + f(e);
+  }
+
+  /* ---------- 课程详情 ---------- */
+  function detail(el){
+    var h = el.style.getPropertyValue('--h');
+    var box = document.getElementById('detailBox');
+    box.style.setProperty('--h', h);
+    var t = el.querySelector('p');
+    document.getElementById('dtT').textContent = t ? t.textContent : el.textContent;
+    document.getElementById('dtTag').textContent = '课程详情';
+    document.getElementById('dtW').textContent = '第 ' + week + ' 周 · 本学期开课';
+    document.getElementById('dtX').textContent = '按作息时间显示';
+    document.getElementById('dtR').textContent = '地点 · 教师（正式版从课表读取）';
+    document.getElementById('mask').classList.add('show');
+    box.classList.add('show');
+  }
+  function closeDetail(){
+    document.getElementById('mask').classList.remove('show');
+    document.getElementById('detailBox').classList.remove('show');
+  }
+
+  /* ---------- 页面切换 ---------- */
+  function showPage(id){
+    ['p1-home','p1-mgr'].forEach(function(p){
+      var el = document.getElementById(p);
+      el.hidden = (p !== id);
+      if(!el.hidden){ el.style.animation='none'; void el.offsetWidth; el.style.animation=''; }
+    });
+  }
+
+  /* ---------- 课表切换 ---------- */
+  function switchTimetable(card, name){
+    document.querySelectorAll('.tcard').forEach(function(c){c.classList.remove('cur')});
+    card.classList.add('cur');
+    var badge = card.querySelector('.badge');
+    document.querySelectorAll('.tcard .badge').forEach(function(b){b.remove()});
+    if(!badge){ badge = document.createElement('span'); badge.className='badge'; badge.textContent='使用中';
+      card.querySelector('.row1').appendChild(badge); }
+    toast('已切换到「' + name + '」');
+  }
+
+  /* ---------- 内置浏览器导入三态 ---------- */
+  function brGo(n){
+    ['br0','br1','br2'].forEach(function(id,idx){
+      var el = document.getElementById(id);
+      el.hidden = (idx !== n);
+      if(!el.hidden){ el.style.animation='none'; void el.offsetWidth; el.style.animation=''; }
+    });
+  }
+
+  /* ---------- 小组件点击 ---------- */
+  function widgetOpen(el, name){
+    el.style.boxShadow = '0 0 0 3px rgba(143,165,255,.9),0 14px 36px rgba(0,0,0,.45)';
+    setTimeout(function(){ el.style.boxShadow=''; }, 450);
+    toast('已打开 Obsession（模拟）');
+  }
+
+  /* ---------- 长按网格调背景 ---------- */
+  var gridEl = document.getElementById('grid');
+  var pressTimer = null;
+  gridEl.addEventListener('touchstart', function(){ pressTimer = setTimeout(openBg, 550); });
+  gridEl.addEventListener('touchend', function(){ clearTimeout(pressTimer); });
+  gridEl.addEventListener('contextmenu', function(e){ e.preventDefault(); openBg(); });
+</script>
+</body>
+</html>

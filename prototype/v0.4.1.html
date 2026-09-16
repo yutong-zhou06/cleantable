@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Obsession v0.4.1 修复方案 demo — 小组件单节课 + 教务导入重构</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161b24; --panel2:#1c2230; --line:#2a3242;
+    --text:#e8ecf3; --dim:#98a1b0; --faint:#6c7484;
+    --accent:#4c6fff; --green:#3fbf7f; --red:#e0566b; --amber:#e0a34c;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{background:var(--bg); color:var(--text); font-family:"PingFang SC","Microsoft YaHei",sans-serif; padding:28px 20px 60px;}
+  h1{font-size:22px; margin-bottom:6px;}
+  .sub{color:var(--dim); font-size:13px; margin-bottom:26px;}
+  .diagnosis{max-width:1080px; margin:0 auto 30px; display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .dcard{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px 18px;}
+  .dcard h3{font-size:14px; margin-bottom:10px; display:flex; align-items:center; gap:8px;}
+  .tag{font-size:10px; padding:2px 8px; border-radius:99px; font-weight:600;}
+  .tag.red{background:rgba(224,86,107,.15); color:var(--red);}
+  .tag.green{background:rgba(63,191,127,.15); color:var(--green);}
+  .dcard p, .dcard li{font-size:12.5px; color:var(--dim); line-height:1.8;}
+  .dcard ul{padding-left:18px;}
+  .dcard b{color:var(--text);}
+  .code{font-family:Consolas,monospace; font-size:11.5px; background:#0a0d12; border:1px solid var(--line); border-radius:8px; padding:2px 7px; color:#9fc1ff;}
+
+  .stage{max-width:1080px; margin:0 auto; display:flex; gap:40px; flex-wrap:wrap; justify-content:center;}
+  .col{display:flex; flex-direction:column; gap:14px;}
+  .coltitle{font-size:15px; font-weight:700; display:flex; align-items:center; gap:10px;}
+  .coltitle .num{width:22px; height:22px; border-radius:7px; background:var(--accent); color:#fff; font-size:12px; display:flex; align-items:center; justify-content:center;}
+
+  .phone{width:340px; background:#000; border-radius:34px; padding:10px; border:1px solid #333; box-shadow:0 20px 60px rgba(0,0,0,.5);}
+  .screen{background:linear-gradient(160deg,#1a2340 0%,#141a28 55%,#10151f 100%); border-radius:26px; height:600px; padding:20px 16px; position:relative; overflow:hidden;}
+  .statusbar{display:flex; justify-content:space-between; font-size:11px; color:#cfd6e4; padding:0 6px 14px;}
+
+  /* ---- 小组件 ---- */
+  .widget{background:rgba(255,255,255,.08); border-radius:22px; padding:12px 14px; margin-bottom:12px; backdrop-filter:blur(6px); cursor:pointer; transition:transform .15s;}
+  .widget:active{transform:scale(.98);}
+  .w-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
+  .w-title{font-size:12.5px; font-weight:700; color:#f0f3f9;}
+  .w-count{font-size:10.5px; color:#98a1b0;}
+  .w-rows{display:flex; flex-direction:column; gap:5px; justify-content:center; flex:1;}
+  .w-row{display:flex; align-items:center; gap:8px; border-radius:11px; padding:5px 10px; animation:fadein .3s;}
+  .w-row.upcoming{background:rgba(255,255,255,.10);}
+  .w-row.ongoing{background:linear-gradient(90deg,rgba(76,111,255,.45),rgba(76,111,255,.12));}
+  .w-row.past{background:rgba(255,255,255,.045);}
+  .w-time{font-size:10px; font-weight:700; color:#98a1b0; width:38px;}
+  .w-dot{width:5px; height:5px; border-radius:99px; background:var(--accent);}
+  .w-row.past .w-dot{background:#6c7484;}
+  .w-info{flex:1; min-width:0;}
+  .w-name{font-size:11.5px; color:#e8ecf3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .w-room{font-size:9.5px; color:#98a1b0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .w-row.past .w-name,.w-row.past .w-time{color:#828b9c;}
+  .w-empty{font-size:11px; color:#828b9c; display:flex; align-items:center; height:100%;}
+
+  .w-bar{display:flex; align-items:center; gap:9px; padding:0 4px; border-radius:22px;}
+  .w-bar .vdot{width:3px; height:16px; border-radius:2px; background:var(--accent);}
+  .w-bar .t{font-size:12.5px; font-weight:700; color:#e8ecf3;}
+  .w-bar .x{font-size:12px; color:#e8ecf3; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .w-next .lbl{font-size:9.5px; font-weight:700; color:#7d96ff; letter-spacing:.5px;}
+  .w-next .tm{font-size:24px; font-weight:800; color:#f0f3f9; margin:2px 0;}
+  .w-next .nm{font-size:11.5px; color:#e8ecf3;}
+  .w-next .rm{font-size:9.5px; color:#98a1b0;}
+
+  /* ---- 控制条 ---- */
+  .controls{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:14px 16px;}
+  .controls .row{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
+  .controls .row:last-child{margin-bottom:0;}
+  .clabel{font-size:12px; color:var(--dim); width:70px; flex-shrink:0;}
+  .seg{display:flex; gap:6px; flex:1;}
+  .seg button{flex:1; background:var(--panel2); border:1px solid var(--line); color:var(--dim); font-size:12px; padding:7px 0; border-radius:9px; cursor:pointer; transition:.15s;}
+  .seg button.on{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600;}
+  input[type=range]{flex:1; accent-color:var(--accent);}
+  .tval{font-size:12px; color:var(--text); width:46px; text-align:right; font-variant-numeric:tabular-nums;}
+  .note{font-size:11px; color:var(--faint); line-height:1.7;}
+  .note b{color:var(--green);}
+
+  /* ---- 浏览器流程 ---- */
+  .brscreen{padding:14px 12px; display:flex; flex-direction:column; gap:10px;}
+  .brurl{background:rgba(255,255,255,.08); border-radius:99px; padding:7px 14px; font-size:10.5px; color:#cfd6e4; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .brpage{flex:1; background:rgba(255,255,255,.05); border-radius:14px; padding:12px; position:relative; overflow:hidden;}
+  .brframe{border:1px dashed rgba(76,111,255,.5); border-radius:10px; padding:8px; margin-top:8px;}
+  .brframe .flabel{font-size:9px; color:#7d96ff; margin-bottom:6px;}
+  .faketable{width:100%; border-collapse:collapse;}
+  .faketable td{border:1px solid rgba(255,255,255,.14); font-size:8.5px; color:#cfd6e4; padding:3px 4px; text-align:center;}
+  .faketable td.hit{background:rgba(76,111,255,.28); color:#fff;}
+  .fab{position:absolute; bottom:14px; left:50%; transform:translateX(-50%); background:rgba(30,36,52,.92); color:#cfd6e4; font-size:11px; padding:9px 16px; border-radius:99px; border:1px solid var(--line); white-space:nowrap; transition:.25s;}
+  .fab.detected{background:var(--green); color:#fff; font-weight:700; border-color:var(--green);}
+  .brsteps{display:flex; flex-direction:column; gap:6px; margin-top:10px;}
+  .bstep{display:flex; align-items:center; gap:8px; font-size:11px; color:var(--dim); padding:7px 10px; border-radius:9px; background:rgba(255,255,255,.04); transition:.2s;}
+  .bstep.doing{background:rgba(76,111,255,.18); color:#cdd8ff;}
+  .bstep.done{color:var(--green);}
+  .bstep .ic{width:14px; text-align:center;}
+  .brbtns{display:flex; gap:8px;}
+  .brbtns button{flex:1; background:var(--panel2); border:1px solid var(--line); color:var(--text); font-size:12px; padding:8px; border-radius:9px; cursor:pointer;}
+  .brbtns button.primary{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600;}
+  .brbtns button:disabled{opacity:.35; cursor:default;}
+
+  /* ---- 临时文件时间线 ---- */
+  .timeline{background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:16px;}
+  .timeline h4{font-size:13px; margin-bottom:12px;}
+  .tl{display:flex; align-items:flex-start; gap:0;}
+  .tlnode{flex:1; text-align:center; position:relative;}
+  .tlnode::before{content:''; position:absolute; top:9px; left:-50%; width:100%; height:2px; background:var(--line);}
+  .tlnode:first-child::before{display:none;}
+  .tlnode .dot{width:18px; height:18px; border-radius:99px; background:var(--panel2); border:2px solid var(--line); margin:0 auto 8px; position:relative; z-index:1; transition:.25s;}
+  .tlnode.lit .dot{background:var(--green); border-color:var(--green); box-shadow:0 0 10px rgba(63,191,127,.5);}
+  .tlnode.err .dot{background:var(--red); border-color:var(--red);}
+  .tlnode .tt{font-size:11px; color:var(--text);}
+  .tlnode .td{font-size:9.5px; color:var(--faint); line-height:1.5; margin-top:3px;}
+  .tlnode.err .tt{color:var(--red);}
+
+  @keyframes fadein{from{opacity:0; transform:translateY(4px);} to{opacity:1;}}
+  .preview-banner{position:absolute; inset:0; background:rgba(10,13,18,.88); border-radius:26px; display:none; flex-direction:column; justify-content:center; align-items:center; gap:10px; z-index:5; animation:fadein .25s;}
+  .preview-banner.show{display:flex;}
+  .preview-banner .big{font-size:15px; font-weight:700;}
+  .preview-banner .sm{font-size:11.5px; color:var(--dim); text-align:center; line-height:1.7; padding:0 24px;}
+  .preview-banner .btn{background:var(--accent); color:#fff; font-size:12px; font-weight:600; padding:9px 22px; border-radius:99px; border:none; cursor:pointer;}
+</style>
+</head>
+<body>
+
+<h1>Obsession v0.4.1 修复方案 demo</h1>
+<p class="sub">两个问题：① 小组件在单节课（及重新放置后）显示「加载中」；② 教务导入解析失败。以下先给根因，再用可交互 demo 展示修复后的行为。确认后我才动代码。</p>
+
+<div class="diagnosis">
+  <div class="dcard">
+    <h3><span class="tag red">根因 1</span>小组件「加载中」＝渲染崩溃，与课程数量无关</h3>
+    <ul>
+      <li>组件渲染用 <span class="code">runBlocking</span> 查数据库，但 Room <b>未允许主线程查询</b> → 系统投递组件更新时（主线程）直接抛异常 → 启动器永远停在「加载中」。</li>
+      <li>而<b>午夜闹钟 / 应用内改课表</b>走后台线程，能渲染成功 —— 所以有时又「自己好了」，「下一节课」恰好最近一次刷新走的是后台。</li>
+      <li><b>你单节课测试时重新添加了组件</b>，正好触发主线程崩溃，与 1 节课只是时间巧合。</li>
+      <li>连带：刷新循环无异常隔离（一个组件崩连累其余）；未设学期起始日时周数计算溢出（≈2945 周），课程被全部误过滤。</li>
+    </ul>
+  </div>
+  <div class="dcard">
+    <h3><span class="tag red">根因 2</span>浏览器只抓主文档，拿不到 iframe 里的课表</h3>
+    <ul>
+      <li>当前只取主文档 <span class="code">outerHTML</span>：课表在 <b>iframe</b> 内时抓不到 → 「解析失败 / 0 门课」。</li>
+      <li>正方教务是 <b>SPA</b>：页面内跳转不触发「加载完成」事件，自动识别失灵；异步渲染时探测也偏早。</li>
+      <li><b>采纳你的思路</b>：页面存为临时 HTML → 走与文件导入<b>完全同一</b>解析管线 → 导入后删除；失败时样本保留供导出发我。</li>
+      <li>真正救活解析的是：逐 frame 提取 + SPA 路由探测 + 延迟重试（文件只是更稳的壳）。</li>
+    </ul>
+  </div>
+</div>
+
+<div class="stage">
+
+  <!-- ============ 左：小组件 ============ -->
+  <div class="col">
+    <div class="coltitle"><span class="num">1</span>小组件 · 任意课程数量正确显示</div>
+
+    <div class="controls">
+      <div class="row">
+        <span class="clabel">今天的课</span>
+        <div class="seg" id="cntseg">
+          <button data-n="0">0 节</button>
+          <button data-n="1" class="on">1 节</button>
+          <button data-n="2">2 节</button>
+          <button data-n="5">5 节</button>
+        </div>
+      </div>
+      <div class="row">
+        <span class="clabel">当前时间</span>
+        <input type="range" id="tslider" min="360" max="1320" step="15" value="600">
+        <span class="tval" id="tval">10:00</span>
+      </div>
+      <p class="note">切换数量和时间，三个组件实时重绘。单节课已上完 / 正在上 / 未开始三种状态都正确；<b>单行时今日课表垂直居中</b>，不再顶着一头空白。渲染全程带异常兜底——即使失败也显示数据或空态，<b>永远不会停留「加载中」</b>。</p>
+    </div>
+
+    <div class="phone"><div class="screen">
+      <div class="statusbar"><span>14:32</span><span>▂▄▆ ⚡</span></div>
+
+      <div class="widget" style="height:150px; display:flex; flex-direction:column;">
+        <div class="w-head"><span class="w-title" id="t_title">今天 · 周三</span><span class="w-count" id="t_count"></span></div>
+        <div class="w-rows" id="t_rows" style="flex:1;"></div>
+      </div>
+
+      <div style="display:flex; gap:12px;">
+        <div class="widget w-next" style="width:150px; height:110px;">
+          <div class="lbl" id="n_lbl">下一节</div>
+          <div class="tm" id="n_time">--:--</div>
+          <div class="nm" id="n_name">—</div>
+          <div class="rm" id="n_room"></div>
+        </div>
+        <div class="widget w-bar" style="flex:1; height:44px; margin-bottom:0; align-self:flex-start; margin-top:0;">
+          <div class="vdot"></div><span class="t" id="b_time">--:--</span><span class="x" id="b_text"></span>
+        </div>
+      </div>
+
+      <div style="margin-top:18px; display:flex; gap:8px;">
+        <div style="flex:1; height:52px; border-radius:16px; background:rgba(255,255,255,.10);"></div>
+        <div style="flex:1; height:52px; border-radius:16px; background:rgba(255,255,255,.10);"></div>
+        <div style="flex:1; height:52px; border-radius:16px; background:rgba(255,255,255,.10);"></div>
+        <div style="flex:1; height:52px; border-radius:16px; background:rgba(255,255,255,.10);"></div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- ============ 右：浏览器导入 ============ -->
+  <div class="col">
+    <div class="coltitle"><span class="num">2</span>教务导入重构 · 临时文件全生命周期</div>
+
+    <div class="phone"><div class="screen brscreen">
+      <div class="statusbar" style="padding:0 4px;"><span>14:32</span><span>▂▄▆ ⚡</span></div>
+      <div class="brurl" id="brurl">jwgl.example.edu.cn/xskbcx_cxXsKbIndex.html</div>
+
+      <div class="brpage" id="brpage">
+        <div style="font-size:9.5px; color:#98a1b0; margin-bottom:4px;">个人课表查询 · 主文档</div>
+        <table class="faketable"><tr><td>菜单</td><td>学籍</td><td>成绩</td></tr></table>
+        <div class="brframe">
+          <div class="flabel">iframe：kbcx_frame（← 课表实际住在这里，旧版抓不到这层）</div>
+          <table class="faketable" id="faketable">
+            <tr><td class="hit">高等数学</td><td></td><td class="hit">大学英语</td><td></td></tr>
+            <tr><td></td><td class="hit">大学物理</td><td></td><td class="hit">数据结构</td></tr>
+          </table>
+        </div>
+        <div class="fab" id="fab">解析此页</div>
+        <div class="preview-banner" id="preview">
+          <div class="big">是否导入课表？</div>
+          <div class="sm" id="pv_detail">检测到 4 门课程 · 2026-2027学年第1学期<br>来自临时文件 kbcx_import.html（导入后自动删除）</div>
+          <button class="btn" onclick="resetFlow()">返回演示</button>
+        </div>
+      </div>
+
+      <div class="brsteps" id="steps">
+        <div class="bstep" data-k="probe"><span class="ic">○</span>自动探测：主文档 → iframe 逐层扫（含 SPA 路由触发 + 1.5s/3s 重试）</div>
+        <div class="bstep" data-k="save"><span class="ic">○</span>抓取课表所在层的完整 HTML → 写入临时文件 cacheDir/kbcx_import.html</div>
+        <div class="bstep" data-k="parse"><span class="ic">○</span>用与「文件导入」完全相同的解析管线（编码探测 + 正方解析）</div>
+        <div class="bstep" data-k="import"><span class="ic">○</span>解析成功 → 自动跳主页弹出导入预览 → <b style="color:var(--green)">finally 删除临时文件</b></div>
+      </div>
+
+      <div class="brbtns">
+        <button id="btn_fail" onclick="runFlow(true)">模拟解析失败分支</button>
+        <button id="btn_run" class="primary" onclick="runFlow(false)">▶ 演示完整流程</button>
+      </div>
+    </div></div>
+
+    <div class="timeline">
+      <h4>临时文件生命周期（右下角可切失败分支）</h4>
+      <div class="tl" id="tl">
+        <div class="tlnode" data-k="probe"><div class="dot"></div><div class="tt">创建</div><div class="td">仅在探测命中后写入 cacheDir，不落外部存储</div></div>
+        <div class="tlnode" data-k="parse"><div class="dot"></div><div class="td">解析</div><div class="td">与文件导入同一套代码，MHTML 也天然复用</div></div>
+        <div class="tlnode" data-k="import"><div class="dot"></div><div class="td">导入 + 删除</div><div class="td">try-finally 保证清理；启动时顺带清 7 天前残留</div></div>
+        <div class="tlnode" data-k="fail"><div class="dot"></div><div class="td">失败 → 留样</div><div class="td">解析失败时文件转存 samples/，界面一键「导出样本」发我取证</div></div>
+      </div>
+      <p class="note" style="margin-top:10px;">失败分支的价值：以前「解析失败」只能靠嘴描述，现在每次失败都自动留下现场，你直接把样本发我，下一版就能适配——<b>不再需要你手动另存网页</b>。</p>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============ 小组件 demo ============ */
+var NAMES = ["高等数学","大学英语","大学物理","数据结构","体育","操作系统"];
+var ROOMS = ["教1-301","外语楼A202","物理楼B110","软件楼508","田径场","教2-105"];
+var COURSES = [
+  {n1:1,n2:2,s:"08:00",e:"09:35"},
+  {n1:3,n2:4,s:"10:05",e:"11:40"},
+  {n1:6,n2:7,s:"14:00",e:"15:35"},
+  {n1:8,n2:9,s:"15:55",e:"17:30"},
+  {n1:10,n2:11,s:"18:30",e:"20:05"},
+  {n1:12,n2:12,s:"20:15",e:"20:55"}
+];
+var count = 1, nowMin = 600;
+
+function state(c){
+  var t = function(x){var p=x.split(":");return +p[0]*60 + +p[1];};
+  if (nowMin >= t(c.e)) return "past";
+  if (nowMin >= t(c.s)) return "ongoing";
+  return "upcoming";
+}
+function renderWidgets(){
+  var list = COURSES.slice(0, count);
+  var st = list.map(function(c){ return {c:c, s:state(c)}; });
+
+  // 今日课表
+  var rows = document.getElementById("t_rows");
+  rows.innerHTML = "";
+  document.getElementById("t_count").textContent = count ? count + " 门" : "";
+  if (!st.length){
+    var d = document.createElement("div"); d.className="w-empty"; d.textContent="今天没有课";
+    rows.appendChild(d);
+  } else {
+    st.forEach(function(x){
+      var r = document.createElement("div");
+      r.className = "w-row " + x.s;
+      r.innerHTML = '<span class="w-time">'+x.c.s+'</span><span class="w-dot"></span>'+
+        '<div class="w-info"><div class="w-name">'+NAMES[x.c.n1-1]+'</div>'+
+        '<div class="w-room">'+ROOMS[x.c.n1-1]+'</div></div>';
+      rows.appendChild(r);
+    });
+  }
+
+  // 下一节
+  var target = null, lbl = "下一节";
+  for (var i=0;i<st.length;i++) if (st[i].s==="ongoing"){ target=st[i]; lbl="正在上"; break; }
+  if (!target) for (var j=0;j<st.length;j++) if (st[j].s==="upcoming"){ target=st[j]; break; }
+  if (target){
+    document.getElementById("n_lbl").textContent = lbl;
+    document.getElementById("n_time").textContent = target.c.s;
+    document.getElementById("n_name").textContent = NAMES[target.c.n1-1];
+    document.getElementById("n_room").textContent = ROOMS[target.c.n1-1];
+    document.getElementById("b_time").textContent = target.c.s;
+    document.getElementById("b_text").textContent = NAMES[target.c.n1-1] + " · " + ROOMS[target.c.n1-1];
+  } else {
+    var msg = st.length ? "今天的课都上完了" : "今天没有课";
+    document.getElementById("n_lbl").textContent = "今天";
+    document.getElementById("n_time").textContent = "—";
+    document.getElementById("n_name").textContent = msg;
+    document.getElementById("n_room").textContent = "";
+    document.getElementById("b_time").textContent = "--:--";
+    document.getElementById("b_text").textContent = msg;
+  }
+}
+document.getElementById("cntseg").addEventListener("click", function(e){
+  if (!e.target.dataset.n) return;
+  count = +e.target.dataset.n;
+  [].forEach.call(this.children, function(b){ b.classList.toggle("on", b===e.target); });
+  renderWidgets();
+});
+document.getElementById("tslider").addEventListener("input", function(){
+  nowMin = +this.value;
+  document.getElementById("tval").textContent =
+    String(Math.floor(nowMin/60)).padStart(2,"0") + ":" + String(nowMin%60).padStart(2,"0");
+  renderWidgets();
+});
+renderWidgets();
+
+/* ============ 浏览器导入流程 demo ============ */
+var FLOW = ["probe","save","parse","import"];
+var timer = null;
+function setStep(k, cls){
+  var el = document.querySelector('.bstep[data-k="'+k+'"]');
+  el.className = "bstep " + cls;
+  el.querySelector(".ic").textContent = cls==="done" ? "✓" : (cls==="doing" ? "●" : "○");
+  var node = document.querySelector('.tlnode[data-k="'+k+'"]');
+  if (node) node.className = "tlnode " + (cls==="done" ? "lit" : "");
+}
+function resetFlow(){
+  clearInterval(timer);
+  FLOW.forEach(function(k){ setStep(k, ""); });
+  var f = document.querySelector('.tlnode[data-k="fail"]'); if (f) f.className = "tlnode";
+  document.getElementById("fab").className = "fab";
+  document.getElementById("fab").textContent = "解析此页";
+  document.getElementById("preview").classList.remove("show");
+  document.getElementById("btn_run").disabled = false;
+  document.getElementById("btn_fail").disabled = false;
+}
+function runFlow(failMode){
+  resetFlow();
+  document.getElementById("btn_run").disabled = true;
+  document.getElementById("btn_fail").disabled = true;
+  var fab = document.getElementById("fab");
+  var i = 0;
+  fab.className = "fab"; fab.textContent = "探测课表特征…";
+  timer = setInterval(function(){
+    if (i === 0){
+      setStep("probe","doing");
+      setTimeout(function(){ fab.className = "fab detected"; fab.textContent = "✓ 发现课表（iframe 内）· 点击导入"; }, 700);
+    } else if (i === 1){
+      setStep("probe","done"); setStep("save","doing");
+      fab.textContent = "正在保存页面…";
+    } else if (i === 2){
+      setStep("save","done"); setStep("parse","doing");
+      fab.textContent = failMode ? "正在解析…" : "正在解析…";
+    } else if (i === 3){
+      if (failMode){
+        setStep("parse",""); setStep("fail","err");
+        var fnode = document.querySelector('.tlnode[data-k="fail"]');
+        fnode.className = "tlnode err"; fnode.querySelector(".tt").textContent = "失败 → 已留样";
+        fab.className = "fab"; fab.style.background = "rgba(224,86,107,.9)"; fab.style.borderColor = "transparent";
+        fab.textContent = "解析失败 · 样本已留存 → 点此导出给开发者";
+        clearInterval(timer);
+        setTimeout(resetFlow, 3200);
+        setTimeout(function(){ fab.style.background=""; fab.style.borderColor=""; }, 3300);
+        return;
+      }
+      setStep("parse","done"); setStep("import","doing");
+    } else if (i === 4){
+      setStep("import","done");
+      document.getElementById("pv_detail").innerHTML =
+        "检测到 4 门课程 · 2026-2027学年第1学期<br>来自临时文件 kbcx_import.html（<b style='color:var(--green)'>导入后已自动删除</b>）";
+      document.getElementById("preview").classList.add("show");
+      clearInterval(timer);
+      setTimeout(resetFlow, 5000);
+      return;
+    }
+    i++;
+  }, 900);
+}
+</script>
+</body>
+</html>

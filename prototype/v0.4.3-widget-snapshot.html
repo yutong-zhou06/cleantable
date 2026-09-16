@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>v0.4.3 方案演示 · 桌面小组件「静态快照」重构</title>
+<style>
+  :root{
+    --page:#eef1f6; --card:#ffffff; --ink:#1c2230; --sub:#6b7484;
+    --accent:#4f6bff; --ok:#1d9e75; --bad:#d64550; --warn:#b7791f;
+    --line:#e3e7ef;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--page);color:var(--ink);font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;padding:28px 20px 60px}
+  .wrap{max-width:1120px;margin:0 auto}
+  h1{font-size:22px;margin-bottom:4px}
+  .ver{color:var(--sub);font-size:13px;margin-bottom:20px}
+  h2{font-size:16px;margin:26px 0 10px;display:flex;align-items:center;gap:8px}
+  h2::before{content:"";width:4px;height:16px;border-radius:2px;background:var(--accent);display:inline-block}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:14px}
+  .muted{color:var(--sub);font-size:13px;line-height:1.7}
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:900px){.g2,.g3{grid-template-columns:1fr}}
+
+  /* ---------- 流程图 ---------- */
+  .flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap}
+  .step{flex:1;min-width:150px;background:#f7f9fd;border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center}
+  .step b{display:block;font-size:13.5px;margin-bottom:4px}
+  .step span{font-size:12px;color:var(--sub);line-height:1.5;display:block}
+  .arrow{align-self:center;padding:0 8px;color:var(--accent);font-weight:700}
+
+  /* ---------- 手机壳 ---------- */
+  .phone{width:330px;height:660px;border:10px solid #14161f;border-radius:42px;background:#f6f7fb;overflow:hidden;position:relative;flex-shrink:0;box-shadow:0 12px 30px rgba(20,22,31,.18)}
+  .statusbar{height:26px;display:flex;justify-content:space-between;align-items:center;padding:0 18px;font-size:11px;color:#5a6270;background:transparent}
+  .apphead{padding:10px 16px 12px;display:flex;justify-content:space-between;align-items:center}
+  .apphead .t{font-size:17px;font-weight:700}
+  .apphead .d{font-size:11.5px;color:var(--sub);margin-top:2px}
+  .menubtn{width:34px;height:34px;border:none;background:#fff;border-radius:10px;font-size:16px;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.08);color:var(--ink)}
+  .menu{position:absolute;top:88px;right:14px;background:#fff;border-radius:12px;box-shadow:0 8px 28px rgba(0,0,0,.18);padding:6px;width:196px;display:none;z-index:30}
+  .menu.show{display:block}
+  .menu button{display:block;width:100%;text-align:left;border:none;background:none;padding:10px 12px;font-size:13.5px;border-radius:8px;cursor:pointer;color:var(--ink)}
+  .menu button:hover{background:#f0f3fa}
+  .menu button.hot{color:var(--accent);font-weight:600}
+  .menu button .tag{float:right;font-size:10px;background:#eef1ff;color:var(--accent);border-radius:6px;padding:1px 6px}
+  .weekrow{display:flex;gap:6px;padding:0 16px 8px}
+  .weekrow i{font-style:normal;font-size:11px;color:var(--sub);background:#fff;border-radius:8px;padding:4px 8px}
+  .weekrow i.cur{background:var(--accent);color:#fff;font-weight:600}
+  .fakegrid{margin:6px 12px;background:#fff;border-radius:14px;height:430px;padding:10px;background-image:repeating-linear-gradient(0deg,transparent 0 50px,#eef1f6 50px 51px);background-image:repeating-linear-gradient(90deg,transparent 0 44px,#eef1f6 44px 45px);position:relative}
+  .les{position:absolute;border-radius:8px;padding:5px 7px;font-size:10.5px;color:#fff;line-height:1.35;overflow:hidden}
+  .overlay{position:absolute;inset:0;background:rgba(20,22,31,.42);display:none;align-items:center;justify-content:center;z-index:40}
+  .overlay.show{display:flex}
+  .sheet{background:#fff;border-radius:16px;width:250px;padding:18px;text-align:center}
+  .sheet h3{font-size:14.5px;margin-bottom:12px}
+  .bar{height:8px;border-radius:4px;background:#edf0f6;overflow:hidden;margin-bottom:12px}
+  .bar>i{display:block;height:100%;width:0;background:var(--accent);border-radius:4px;transition:width .35s}
+  .sheet .res{font-size:12.5px;text-align:left}
+  .sheet .res .row{display:flex;justify-content:space-between;padding:7px 4px;border-bottom:1px dashed var(--line)}
+  .sheet .res .row:last-child{border:none}
+  .okc{color:var(--ok);font-weight:700}
+  .badc{color:var(--bad);font-weight:700}
+  .sheet button{margin-top:12px;width:100%;padding:9px;border:none;border-radius:9px;background:var(--accent);color:#fff;font-size:13px;cursor:pointer}
+  .errbox{margin-top:10px;text-align:left;font-size:11px;background:#fdf1f2;border:1px solid #f3c8cc;color:var(--bad);border-radius:8px;padding:8px;line-height:1.5;display:none}
+  .toast{position:absolute;left:50%;transform:translateX(-50%);bottom:26px;background:rgba(20,22,31,.88);color:#fff;font-size:12.5px;padding:9px 16px;border-radius:20px;opacity:0;transition:opacity .3s;z-index:50;white-space:nowrap}
+  .toast.show{opacity:1}
+
+  /* ---------- 控件区 ---------- */
+  .ctrl{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+  .ctrl label{font-size:12.5px;color:var(--sub)}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .seg button{border:none;background:#fff;padding:6px 14px;font-size:12.5px;cursor:pointer;color:var(--ink)}
+  .seg button.on{background:var(--accent);color:#fff}
+  input[type=range]{accent-color:var(--accent)}
+  select{padding:5px 8px;border-radius:8px;border:1px solid var(--line);font-size:12.5px}
+  .widgetbox{background:repeating-linear-gradient(45deg,#dfe4ee 0 14px,#e9edf5 14px 28px);border-radius:16px;padding:26px;display:flex;justify-content:center;align-items:center;min-height:250px}
+  canvas.snap{border-radius:18px;box-shadow:0 8px 22px rgba(20,22,31,.22);display:block}
+  .cap{font-size:12px;color:var(--sub);text-align:center;margin-top:8px}
+
+  /* ---------- 时机/取舍清单 ---------- */
+  ul.tick{list-style:none}
+  ul.tick li{padding:7px 0 7px 26px;position:relative;font-size:13.5px;border-bottom:1px dashed var(--line)}
+  ul.tick li:last-child{border:none}
+  ul.tick li::before{content:"✓";position:absolute;left:2px;color:var(--ok);font-weight:700}
+  ul.tick.warn li::before{content:"!";color:var(--warn)}
+  .note{background:#f3f7ff;border:1px solid #dbe4ff;border-radius:10px;padding:10px 14px;font-size:12.5px;color:#3d4a6b;line-height:1.7;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>桌面小组件「静态快照」重构 · v0.4.3 方案演示</h1>
+  <div class="ver">Obsession · 2026-09-16 · 仅供方案审核，未改任何工程代码</div>
+
+  <h2>一、为什么换思路</h2>
+  <div class="card">
+    <p class="muted">
+      v0.4.2 已经把渲染异常兜住，但真凶的异常栈通过 logcat 抓不到（崩溃发生在启动器进程侧或被系统吞掉）。
+      与其继续在「动态拼装 RemoteViews」这条路上猜，不如换到兼容性最高的做法：
+      <b>组件不再让启动器拼装任何布局，只显示一张我们画好的图。</b>
+      启动器端只剩一个 ImageView —— RemoteViews 里最古老、最稳定的 API，没有任何可崩的拼装环节；
+      而且画图过程发生在我们自己的进程里，出了异常可以直接在应用内弹窗给你看，彻底不需要 logcat。
+    </p>
+  </div>
+
+  <h2>二、新管线</h2>
+  <div class="card">
+    <div class="flow">
+      <div class="step"><b>① 应用内点「一键更新」</b><span>主页菜单新增入口<br>（也可自动触发）</span></div>
+      <div class="arrow">→</div>
+      <div class="step"><b>② Canvas 画快照</b><span>把今天的课表按屏幕密度<br>画成一张位图</span></div>
+      <div class="arrow">→</div>
+      <div class="step"><b>③ 存入应用私有目录</b><span>每张课表 × 每种尺寸一份<br>轻量缓存</span></div>
+      <div class="arrow">→</div>
+      <div class="step"><b>④ RemoteViews 只放 ImageView</b><span>setImageViewBitmap<br>系统级最稳 API</span></div>
+      <div class="arrow">→</div>
+      <div class="step"><b>⑤ 桌面显示</b><span>启动器零拼装<br>没有可崩的环节</span></div>
+    </div>
+    <div class="note">
+      任何一步失败：异常被应用捕获并<b>直接显示在「一键更新」的结果面板里</b>（错误原文 + 失败的是哪个组件），
+      组件退回空布局兜底 —— 你不需要连电脑抓日志，手机上就能看到出错原因。
+    </div>
+  </div>
+
+  <h2>三、试一试</h2>
+  <div class="grid g2">
+    <!-- 应用内 -->
+    <div class="card" style="display:flex;gap:18px;flex-wrap:wrap">
+      <div class="phone">
+        <div class="statusbar"><span>19:00</span><span>▾▴▮ 87%</span></div>
+        <div class="apphead">
+          <div><div class="t">Obsession</div><div class="d">9月16日 周三 · 第 2 周</div></div>
+          <button class="menubtn" id="menuBtn">⋮</button>
+        </div>
+        <div class="weekrow"><i>周一</i><i>周二</i><i class="cur">周三</i><i>周四</i><i>周五</i><i>周六</i><i>周日</i></div>
+        <div class="fakegrid">
+          <div class="les" style="left:3%;top:6%;width:38%;height:96px;background:#5b8def">高等数学<br>教1-301<br>1-2节</div>
+          <div class="les" style="left:45%;top:22%;width:38%;height:96px;background:#48b884">大学英语<br>文科楼B202<br>3-4节</div>
+          <div class="les" style="left:3%;top:48%;width:38%;height:96px;background:#e0a23f">数据结构<br>机房405<br>6-7节</div>
+          <div class="les" style="left:45%;top:64%;width:38%;height:70px;background:#9a7bd8">体育<br>田径场<br>8节</div>
+        </div>
+        <div class="menu" id="menu">
+          <button>导入课表文件</button>
+          <button>从教务网站导入</button>
+          <button>导出课表文件</button>
+          <button class="hot" id="refreshBtn">更新桌面小组件 <span class="tag">新增</span></button>
+        </div>
+        <div class="overlay" id="ovl">
+          <div class="sheet">
+            <h3 id="sheetTitle">正在更新桌面小组件…</h3>
+            <div class="bar"><i id="prog"></i></div>
+            <div class="res" id="resBox" style="display:none">
+              <div class="row"><span>今日课表</span><span class="okc" id="r1">✓ 已更新</span></div>
+              <div class="row"><span>下一节课</span><span class="okc" id="r2">✓ 已更新</span></div>
+              <div class="row"><span>课表简洁条</span><span class="okc" id="r3">✓ 已更新</span></div>
+            </div>
+            <div class="errbox" id="errBox">今日课表 ✗ 绘制失败：Canvas: try to draw too large bitmap…<br>—— 类似这样，异常原文直接显示在应用里，无需 logcat</div>
+            <button id="sheetClose">完成</button>
+          </div>
+        </div>
+        <div class="toast" id="toast"></div>
+      </div>
+      <div style="flex:1;min-width:220px">
+        <p class="muted">
+          <b>入口</b>：主页右上菜单新增「更新桌面小组件」，任何时刻可手动触发。<br><br>
+          <b>结果反馈</b>：逐个组件显示成功/失败；失败时展示<b>异常原文</b>——
+          这就是「logcat 抓不到」问题的解法：把错误从系统深处搬到应用界面上。<br><br>
+          <b>试用</b>：点右上 ⋮ → 点「更新桌面小组件」。
+        </p>
+        <label style="display:inline-flex;gap:6px;align-items:center;margin-top:12px;font-size:12.5px;color:var(--sub);cursor:pointer">
+          <input type="checkbox" id="failSim"> 模拟「今日课表」绘制失败（看错误如何呈现）
+        </label>
+      </div>
+    </div>
+
+    <!-- 桌面快照 -->
+    <div class="card">
+      <div class="ctrl">
+        <label>组件</label>
+        <div class="seg" id="wTabs">
+          <button data-w="today" class="on">今日课表</button>
+          <button data-w="next">下一节课</button>
+          <button data-w="bar">课表简洁条</button>
+        </div>
+        <label>主题</label>
+        <div class="seg" id="tTabs">
+          <button data-t="light" class="on">浅色</button>
+          <button data-t="dark">深色</button>
+        </div>
+      </div>
+      <div class="ctrl">
+        <label>当前时间 <b id="timeLabel">14:30</b></label>
+        <input type="range" id="timeRange" min="360" max="1290" value="870" style="flex:1;min-width:160px">
+        <label>课程数</label>
+        <select id="cnt">
+          <option value="0">0 门（空态）</option>
+          <option value="2">2 门</option>
+          <option value="4" selected>4 门</option>
+        </select>
+      </div>
+      <div class="widgetbox"><canvas class="snap" id="snap" width="620" height="300"></canvas></div>
+      <div class="cap">以上画面由真实 Canvas 绘制逻辑生成 —— 即将来小组件上的最终观感（按设备屏幕密度绘制，实际更清晰）</div>
+    </div>
+  </div>
+
+  <h2>四、自动刷新时机（不只是手动）</h2>
+  <div class="grid g2">
+    <div class="card"><ul class="tick">
+      <li>应用内<b>修改/增删课程</b>后 → 自动重画并推送</li>
+      <li><b>跨天</b>（0 点闹钟，v0.3 已有）→ 重画「今天」的内容</li>
+      <li><b>打开应用</b>时 → 静默校对一次，防止错过的事件</li>
+    </ul></div>
+    <div class="card"><ul class="tick">
+      <li><b>桌面调整组件大小</b> → 系统回调尺寸变化，按新尺寸重画</li>
+      <li><b>切换浅色/深色主题</b> → 按当前主题重画对应配色</li>
+      <li><b>切换多课表</b> → 跟随「当前查看的课表」重画</li>
+    </ul></div>
+  </div>
+
+  <h2>五、取舍与边界（如实说明）</h2>
+  <div class="card"><ul class="tick warn">
+    <li>文字是画进图里的，<b>不跟随系统字体大小设置</b>——按屏幕密度换算，正常手机上清晰度无损</li>
+    <li>组件内的行<b>不能单独点击</b>，整卡点击打开应用（和现在一致）</li>
+    <li>「下一节课」「简洁条」也一并换成快照渲染，三个组件行为统一、代码同一条管线</li>
+    <li>位图缓存放在应用私有目录，每种尺寸一份、覆盖更新，不额外占空间（单张约几十 KB）</li>
+    <li>万一快照绘制也失败 → 自动退回现有的 XML 空布局兜底，永不显示「加载中」</li>
+  </ul></div>
+
+  <h2>六、审核要点</h2>
+  <div class="card muted">
+    1. 快照的<b>视觉样式</b>是否满意（第三区右侧可切组件/主题/时间/课程数）？<br>
+    2. 「一键更新」的<b>入口位置</b>（主页右上菜单）与<b>结果面板</b>形式是否 OK？<br>
+    3. 第五节列出的取舍你是否接受？确认后我再动工程代码。
+  </div>
+</div>
+
+<script>
+/* ---------------- 通用 ---------------- */
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+
+/* ---------------- 应用内演示 ---------------- */
+const menu = $('#menu');
+$('#menuBtn').onclick = e => { e.stopPropagation(); menu.classList.toggle('show'); };
+document.addEventListener('click', () => menu.classList.remove('show'));
+
+$('#refreshBtn').onclick = () => {
+  menu.classList.remove('show');
+  $('#ovl').classList.add('show');
+  $('#sheetTitle').textContent = '正在更新桌面小组件…';
+  $('#prog').style.width = '0';
+  $('#resBox').style.display = 'none';
+  $('#errBox').style.display = 'none';
+  const fail = $('#failSim').checked;
+  let p = 0;
+  const t = setInterval(() => {
+    p += 34;
+    $('#prog').style.width = Math.min(p, 100) + '%';
+    if (p >= 100) {
+      clearInterval(t);
+      $('#sheetTitle').textContent = '更新完成';
+      $('#resBox').style.display = 'block';
+      if (fail) {
+        $('#r1').outerHTML = '<span class="badc" id="r1">✗ 失败</span>';
+        $('#r2').textContent = '✓ 已更新'; $('#r2').className = 'okc';
+        $('#r3').textContent = '✓ 已更新'; $('#r3').className = 'okc';
+        $('#errBox').style.display = 'block';
+      } else {
+        ['r1','r2','r3'].forEach(id => { const el = $('#'+id); el.textContent = '✓ 已更新'; el.className = 'okc'; });
+      }
+      showToast(fail ? '2 个组件已更新，1 个失败（详情见弹窗）' : '3 个桌面小组件已更新');
+    }
+  }, 320);
+};
+$('#sheetClose').onclick = () => $('#ovl').classList.remove('show');
+
+let toastTimer;
+function showToast(msg){
+  const t = $('#toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+/* ---------------- 快照绘制 ---------------- */
+const COURSES = [
+  { name:'高等数学', room:'教1-301',     start:'08:00', end:'09:40' },
+  { name:'大学英语', room:'文科楼B202',  start:'10:00', end:'11:40' },
+  { name:'数据结构', room:'机房405',     start:'14:00', end:'15:40' },
+  { name:'体育',     room:'田径场',      start:'16:00', end:'17:00' },
+];
+const toMin = s => { const [h,m] = s.split(':').map(Number); return h*60+m; };
+const stateOf = (c, now) => now >= toMin(c.end) ? 'past' : now >= toMin(c.start) ? 'now' : 'up';
+
+let W = 'today', T = 'light';
+const cv = $('#snap'), ctx = cv.getContext('2d');
+
+function draw(){
+  const now = +$('#timeRange').value;
+  const cnt = +$('#cnt').value;
+  const list = COURSES.slice(0, cnt).map(c => ({...c, st: stateOf(c, now)}));
+  const dark = T === 'dark';
+  const C = {
+    bg:     dark ? '#1b1e28' : '#fbfcfe',
+    title:  dark ? '#f2f4f8' : '#20242e',
+    dim:    dark ? '#8b93a5' : '#7a8294',
+    faint:  dark ? '#5b6272' : '#a8afbf',
+    accent: dark ? '#6d8bff' : '#4f6bff',
+    nowBg:  dark ? 'rgba(109,139,255,.20)' : 'rgba(79,107,255,.12)',
+    pastBg: dark ? 'rgba(255,255,255,.04)' : 'rgba(30,36,50,.04)',
+    upBg:   dark ? 'rgba(255,255,255,.07)' : 'rgba(30,36,50,.05)',
+  };
+
+  ctx.clearRect(0,0,cv.width,cv.height);
+  // 圆角底
+  ctx.beginPath(); roundRect(ctx, 0, 0, cv.width, cv.height, 26);
+  ctx.fillStyle = C.bg; ctx.fill();
+
+  if (W === 'bar')  return drawBar(list, C, dark);
+  if (W === 'next') return drawNext(list, C, dark);
+  drawToday(list, C, dark);
+}
+
+function drawToday(list, C, dark){
+  const label = '今天 · 周三';
+  ctx.fillStyle = C.title; ctx.font = 'bold 26px "Microsoft YaHei"';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(label, 28, 42);
+  ctx.textAlign = 'right';
+  ctx.fillStyle = C.dim; ctx.font = '20px "Microsoft YaHei"';
+  if (list.length) ctx.fillText(list.length + ' 门', cv.width - 28, 42);
+  ctx.textAlign = 'left';
+
+  if (!list.length){
+    ctx.fillStyle = C.faint; ctx.font = '22px "Microsoft YaHei"';
+    ctx.fillText('今天没有课', 28, cv.height/2 + 10);
+    return;
+  }
+  const top = 78, rowH = Math.min(52, (cv.height - top - 16) / list.length - 6);
+  list.forEach((c, i) => {
+    const y = top + i * (rowH + 6);
+    ctx.beginPath(); roundRect(ctx, 22, y, cv.width - 44, rowH, 14);
+    ctx.fillStyle = c.st === 'now' ? C.nowBg : c.st === 'past' ? C.pastBg : C.upBg;
+    ctx.fill();
+    if (c.st === 'now'){ // 高亮描边
+      ctx.beginPath(); roundRect(ctx, 22.5, y+.5, cv.width-45, rowH-1, 14);
+      ctx.strokeStyle = C.accent; ctx.lineWidth = 1.6; ctx.stroke();
+    }
+    const faded = c.st === 'past';
+    ctx.globalAlpha = faded ? .45 : 1;
+    ctx.fillStyle = c.st === 'now' ? C.accent : C.title;
+    ctx.font = 'bold 19px "Microsoft YaHei"';
+    ctx.fillText(c.start, 40, y + rowH/2);
+    // 状态点
+    ctx.beginPath();
+    ctx.arc(118, y + rowH/2, 4.5, 0, 7);
+    ctx.fillStyle = c.st === 'now' ? C.accent : (faded ? C.faint : C.dim);
+    ctx.fill();
+    ctx.fillStyle = C.title; ctx.font = '19px "Microsoft YaHei"';
+    ctx.fillText(clip(c.name, 8), 134, y + rowH/2);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = C.dim; ctx.font = '15px "Microsoft YaHei"';
+    ctx.fillText(c.room, cv.width - 40, y + rowH/2);
+    ctx.textAlign = 'left';
+    ctx.globalAlpha = 1;
+  });
+}
+
+function drawNext(list, C, dark){
+  const cur = list.find(c => c.st === 'now');
+  const up  = list.find(c => c.st === 'up');
+  const t = cur || up;
+  ctx.fillStyle = C.dim; ctx.font = '17px "Microsoft YaHei"';
+  ctx.fillText(t ? (cur ? '正在上' : '下一节') : '今天', 28, 46);
+  ctx.fillStyle = C.accent; ctx.font = 'bold 44px "Microsoft YaHei"';
+  ctx.fillText(t ? t.start : '—', 28, 108);
+  ctx.fillStyle = C.title; ctx.font = 'bold 28px "Microsoft YaHei"';
+  ctx.fillText(t ? t.name : (list.length ? '今天的课都上完了' : '今天没有课'), 28, 172);
+  if (t){
+    ctx.fillStyle = C.dim; ctx.font = '19px "Microsoft YaHei"';
+    ctx.fillText(t.room || ('第 ' + (list.indexOf(t)+1)*2 + ' 节'), 28, 218);
+  }
+}
+
+function drawBar(list, C, dark){
+  const cur = list.find(c => c.st === 'now');
+  const up  = list.find(c => c.st === 'up');
+  const t = cur || up;
+  ctx.fillStyle = C.accent; ctx.font = 'bold 34px "Microsoft YaHei"';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(t ? t.start : '--:--', 30, cv.height/2);
+  ctx.fillStyle = C.title; ctx.font = 'bold 24px "Microsoft YaHei"';
+  ctx.fillText(t ? t.name : (list.length ? '今天的课已结束' : '今天没有课'), 30 + (t ? 150 : 190), cv.height/2);
+  if (t){
+    ctx.fillStyle = C.dim; ctx.font = '19px "Microsoft YaHei"';
+    ctx.fillText('· ' + t.room, 30 + 150 + ctx.measureText(t.name).width + 66, cv.height/2);
+  }
+}
+
+function roundRect(c, x, y, w, h, r){
+  c.moveTo(x+r, y);
+  c.arcTo(x+w, y,   x+w, y+h, r);
+  c.arcTo(x+w, y+h, x,   y+h, r);
+  c.arcTo(x,   y+h, x,   y,   r);
+  c.arcTo(x,   y,   x+w, y,   r);
+  c.closePath();
+}
+function clip(s, n){ return s.length > n ? s.slice(0, n) + '…' : s; }
+
+/* 控件绑定 */
+$$('#wTabs button').forEach(b => b.onclick = () => {
+  $$('#wTabs button').forEach(x => x.classList.remove('on'));
+  b.classList.add('on'); W = b.dataset.w; draw();
+  $('#snap').style.height = (W === 'bar' ? 120 : W === 'next' ? 260 : 300) + 'px';
+  $('#snap').width = 620;
+  $('#snap').height = W === 'bar' ? 120 : W === 'next' ? 260 : 300;
+  draw();
+});
+$$('#tTabs button').forEach(b => b.onclick = () => {
+  $$('#tTabs button').forEach(x => x.classList.remove('on'));
+  b.classList.add('on'); T = b.dataset.t; draw();
+});
+$('#timeRange').oninput = e => {
+  const v = +e.target.value;
+  $('#timeLabel').textContent = String(Math.floor(v/60)).padStart(2,'0') + ':' + String(v%60).padStart(2,'0');
+  draw();
+};
+$('#cnt').onchange = draw;
+draw();
+</script>
+</body>
+</html>

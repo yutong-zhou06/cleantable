@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 小组件配色（深色 / 墨影）。主色提亮，与 App 内 Theme.kt 保持一致 -->
+<resources>
+    <color name="widget_bg">#D9171A21</color>
+    <color name="widget_text">#FFE9ECF2</color>
+    <color name="widget_text_dim">#FF98A1B0</color>
+    <color name="widget_text_faint">#FF6C7484</color>
+    <color name="widget_accent">#FF6B8AFF</color>
+    <color name="widget_row_upcoming">#14FFFFFF</color>
+    <color name="widget_row_ongoing_start">#336B8AFF</color>
+    <color name="widget_row_ongoing_end">#0D6B8AFF</color>
+</resources>

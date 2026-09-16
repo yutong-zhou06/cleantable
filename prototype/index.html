@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Obsession · 界面原型 v0.2</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{
+    --stage-bg:radial-gradient(1200px 600px at 15% -10%,#28303f 0%,#171a21 45%,#101218 100%);
+    --stage-fg:#E9ECF2;
+    --stage-fg2:#8A93A5;
+    --stage-card:rgba(255,255,255,.045);
+    --stage-line:rgba(255,255,255,.09);
+  }
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    background:var(--stage-bg);background-attachment:fixed;color:var(--stage-fg);
+    min-height:100vh;padding:34px 22px 60px;-webkit-font-smoothing:antialiased;
+  }
+
+  /* ---------- 展示台 ---------- */
+  .topbar{max-width:1440px;margin:0 auto 30px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:13px}
+  .logo{
+    width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:21px;font-weight:700;color:#fff;
+    background:linear-gradient(135deg,#6B8AFF,#A56BFF);box-shadow:0 6px 20px rgba(107,138,255,.4)
+  }
+  .brand h1{font-size:19px;letter-spacing:.4px;font-weight:650}
+  .brand p{font-size:12px;color:var(--stage-fg2);margin-top:2px}
+  .theme-switch{display:flex;gap:8px;background:var(--stage-card);border:1px solid var(--stage-line);padding:5px;border-radius:13px}
+  .tbtn{
+    border:0;background:transparent;color:var(--stage-fg2);font:inherit;font-size:13px;padding:8px 17px;border-radius:9px;cursor:pointer;
+    transition:.18s;font-family:inherit
+  }
+  .tbtn:hover{color:var(--stage-fg)}
+  .tbtn.active{background:rgba(255,255,255,.12);color:#fff;box-shadow:0 1px 6px rgba(0,0,0,.25)}
+
+  .frames{max-width:1440px;margin:0 auto;display:flex;gap:30px;justify-content:center;align-items:flex-start;flex-wrap:wrap}
+  .frame{display:flex;flex-direction:column;align-items:center;gap:13px;flex:0 0 auto}
+  .ftitle{display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:600;color:var(--stage-fg)}
+  .ftitle i{
+    font-style:normal;width:20px;height:20px;border-radius:7px;background:rgba(107,138,255,.2);color:#93A8FF;
+    display:grid;place-items:center;font-size:11px;font-weight:700
+  }
+  .fcap{font-size:11.5px;color:var(--stage-fg2);text-align:center;line-height:1.65;max-width:330px}
+
+  /* ---------- 手机外壳 ---------- */
+  .phone{
+    width:390px;height:812px;border-radius:46px;padding:9px;position:relative;
+    background:linear-gradient(160deg,#3a4050,#1d2129 40%,#2a2f3a);
+    box-shadow:0 26px 60px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.07),inset 0 1px 1px rgba(255,255,255,.14)
+  }
+  .screen{
+    width:100%;height:100%;border-radius:38px;overflow:hidden;position:relative;
+    background:var(--bg);color:var(--text);transition:background .25s,color .25s
+  }
+  .notch{
+    position:absolute;top:9px;left:50%;transform:translateX(-50%);width:104px;height:24px;border-radius:14px;background:#0b0d11;z-index:60
+  }
+
+  /* ---------- 主题变量 ---------- */
+  .screen.light{
+    --bg:#F5F6F9;--surface:#FFFFFF;--surface2:#EEF0F5;--surface3:#E5E8EF;
+    --text:#171A21;--text2:#5C6472;--text3:#9AA1AF;
+    --line:#E4E7EE;--today:rgba(76,111,255,.05);--accent:#4C6FFF;
+    --tabbg:rgba(255,255,255,.86);--skel:rgba(0,0,0,.045);
+  }
+  .screen.dark{
+    --bg:#0E1015;--surface:#171A21;--surface2:#1E222B;--surface3:#262B36;
+    --text:#E9ECF2;--text2:#98A1B0;--text3:#666E7D;
+    --line:#232833;--today:rgba(107,138,255,.07);--accent:#6B8AFF;
+    --tabbg:rgba(23,26,33,.88);--skel:rgba(255,255,255,.05);
+  }
+
+  /* ---------- 状态栏 ---------- */
+  .statusbar{
+    height:44px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 24px 7px;
+    font-size:13px;font-weight:650;letter-spacing:.2px;position:relative;z-index:50
+  }
+  .statusbar .right{display:flex;align-items:center;gap:5px;font-size:10px}
+  .bars{display:flex;align-items:flex-end;gap:1.5px;height:10px}
+  .bars i{width:2.5px;background:currentColor;border-radius:1px;display:block}
+  .bars i:nth-child(1){height:4px}.bars i:nth-child(2){height:6px}.bars i:nth-child(3){height:8px}.bars i:nth-child(4){height:10px}
+  .bat{width:20px;height:10px;border:1.3px solid currentColor;border-radius:3px;position:relative;opacity:.9}
+  .bat::after{content:"";position:absolute;right:-3px;top:2.5px;width:1.5px;height:4px;background:currentColor;border-radius:0 1px 1px 0}
+  .bat b{position:absolute;inset:1.5px;width:62%;background:currentColor;border-radius:1px;display:block}
+
+  /* ---------- 通用 App 内 ---------- */
+  .app{height:calc(100% - 44px);display:flex;flex-direction:column;position:relative}
+  .scroll{flex:1;overflow-y:auto;overscroll-behavior:contain}
+  .scroll::-webkit-scrollbar{width:0}
+
+  .icon-btn{
+    width:34px;height:34px;border-radius:11px;border:0;background:var(--surface2);color:var(--text2);
+    display:grid;place-items:center;cursor:pointer;transition:.15s;flex:0 0 auto
+  }
+  .icon-btn:hover{background:var(--surface3);color:var(--text)}
+
+  /* ---------- ① 课表主页 ---------- */
+  .head{padding:6px 18px 12px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+  .head .sem{font-size:11.5px;color:var(--text3);letter-spacing:.3px;display:flex;align-items:center;gap:6px}
+  .head .sem em{width:5px;height:5px;border-radius:50%;background:var(--accent);font-style:normal;display:block}
+  .head h2{font-size:25px;font-weight:700;letter-spacing:-.3px;margin-top:5px;display:flex;align-items:baseline;gap:8px}
+  .head h2 span{font-size:19px;font-weight:600}
+  .head h2 small{font-size:11.5px;font-weight:450;color:var(--text3);letter-spacing:0}
+
+  .weekbar{display:flex;align-items:center;gap:9px;padding:0 18px 12px}
+  .wk-btn{
+    width:30px;height:30px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--text2);
+    display:grid;place-items:center;cursor:pointer;font-size:13px;transition:.15s;flex:0 0 auto
+  }
+  .wk-btn:hover{background:var(--surface2);color:var(--text)}
+  .wk-track{flex:1;display:flex;gap:3px;justify-content:center;overflow:hidden}
+  .wk-pill{
+    min-width:30px;height:30px;border-radius:10px;display:grid;place-items:center;font-size:12px;font-weight:600;
+    color:var(--text3);cursor:pointer;transition:.15s;border:1px solid transparent
+  }
+  .wk-pill:hover{background:var(--surface2);color:var(--text2)}
+  .wk-pill.on{background:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(76,111,255,.32)}
+
+  .dow{display:grid;grid-template-columns:52px repeat(7,1fr);padding:0 8px 6px;gap:0}
+  .dow div{text-align:center;font-size:10.5px;color:var(--text3);font-weight:550;line-height:1.35;padding-top:2px}
+  .dow div b{display:block;font-size:12px;font-weight:650;color:var(--text2)}
+  .dow div.today b,.dow div.today{color:var(--accent)}
+
+  .grid-wrap{position:relative;padding:0 8px 16px;flex:1;overflow-y:auto;overflow-x:hidden}
+  .grid-wrap::-webkit-scrollbar{width:0}
+  .grid-bg,.grid-course{display:grid;grid-template-columns:52px repeat(7,1fr);grid-auto-rows:54px}
+  .grid-bg .cell{border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .grid-bg .cell:nth-child(8n+1){border-left:1px solid var(--line)}
+  .grid-bg .cell:nth-child(8n+1),.grid-bg .cell:nth-child(8n+2){border-right-color:var(--line)}
+  .grid-bg .cell.today{background:var(--today)}
+  .grid-bg .cell.time{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+    border-left:0;color:var(--text3);font-size:8.5px;line-height:1.15;letter-spacing:-.2px
+  }
+  .grid-bg .cell.time b{font-size:11px;font-weight:650;color:var(--text2);letter-spacing:0}
+  .grid-bg .cell.time i{font-style:normal;font-variant-numeric:tabular-nums;opacity:.62}
+  .grid-course{position:absolute;top:0;left:8px;right:8px;pointer-events:none}
+  .grid-course>*{pointer-events:auto}
+
+  .course{
+    margin:2px 3px;border-radius:9px;padding:5px 6px;overflow:hidden;cursor:pointer;
+    background:hsl(var(--h) 68% 53% / .125);
+    box-shadow:inset 0 0 0 1px hsl(var(--h) 62% 50% / .17),inset 3px 0 0 hsl(var(--h) 66% 56%);
+    color:hsl(var(--h) 52% 28%);
+    transition:transform .14s,box-shadow .14s
+  }
+  .course:hover{transform:translateY(-1.5px);box-shadow:inset 0 0 0 1px hsl(var(--h) 62% 50% / .28),inset 3px 0 0 hsl(var(--h) 66% 56%),0 6px 16px hsl(var(--h) 50% 40% / .2)}
+  .course b{display:block;font-size:10px;font-weight:650;line-height:1.24;letter-spacing:-.1px}
+  .course span{display:block;font-size:8.5px;opacity:.78;margin-top:2px;line-height:1.25}
+  .screen.dark .course{
+    background:hsl(var(--h) 62% 54% / .17);
+    box-shadow:inset 0 0 0 1px hsl(var(--h) 58% 60% / .19),inset 3px 0 0 hsl(var(--h) 60% 62%);
+    color:hsl(var(--h) 70% 79%)
+  }
+  .screen.dark .course:hover{box-shadow:inset 0 0 0 1px hsl(var(--h) 58% 60% / .34),inset 3px 0 0 hsl(var(--h) 60% 62%),0 6px 16px rgba(0,0,0,.45)}
+
+  /* 重叠课程：左右分栏竖排 */
+  .courses-split{
+    margin:2px 3px;display:flex;gap:2px;position:relative
+  }
+  .csplit{
+    flex:1;border-radius:9px;padding:4px 2px;display:flex;justify-content:center;overflow:hidden;cursor:pointer;
+    background:hsl(var(--h) 68% 53% / .125);
+    box-shadow:inset 0 0 0 1px hsl(var(--h) 62% 50% / .17),inset 0 2.5px 0 hsl(var(--h) 66% 56%);
+    color:hsl(var(--h) 52% 28%);transition:.14s
+  }
+  .csplit p{writing-mode:vertical-rl;font-size:9px;font-weight:650;line-height:1.15;letter-spacing:.5px;max-height:100%;overflow:hidden}
+  .csplit:hover{filter:brightness(.97)}
+  .screen.dark .csplit{background:hsl(var(--h) 62% 54% / .17);box-shadow:inset 0 0 0 1px hsl(var(--h) 58% 60% / .19),inset 0 2.5px 0 hsl(var(--h) 60% 62%);color:hsl(var(--h) 70% 79%)}
+  .split-badge{
+    position:absolute;top:-3px;right:-1px;background:var(--text);color:var(--bg);font-size:7.5px;font-weight:700;
+    border-radius:6px;padding:1px 4px;letter-spacing:.2px;box-shadow:0 2px 5px rgba(0,0,0,.22)
+  }
+
+  .fab{
+    position:absolute;right:18px;bottom:18px;width:54px;height:54px;border-radius:19px;border:0;cursor:pointer;
+    background:linear-gradient(140deg,#6B8AFF,#4C6FFF);color:#fff;font-size:25px;font-weight:300;line-height:1;
+    box-shadow:0 10px 26px rgba(76,111,255,.45);display:grid;place-items:center;transition:.18s
+  }
+  .fab:hover{transform:translateY(-2px) scale(1.04);box-shadow:0 14px 32px rgba(76,111,255,.55)}
+
+  /* ---------- 底部弹层（课程详情） ---------- */
+  .sheet-mask{position:absolute;inset:0;background:rgba(10,12,16,.42);opacity:0;pointer-events:none;transition:.22s;z-index:70;backdrop-filter:blur(2px)}
+  .sheet-mask.show{opacity:1;pointer-events:auto}
+  .sheet{
+    position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-radius:26px 26px 0 0;padding:12px 20px 26px;
+    transform:translateY(102%);transition:transform .3s cubic-bezier(.32,.72,0,1);z-index:80;
+    box-shadow:0 -14px 44px rgba(0,0,0,.3)
+  }
+  .sheet.show{transform:translateY(0)}
+  .grab{width:38px;height:4px;border-radius:3px;background:var(--surface3);margin:0 auto 16px}
+  .sh-head{display:flex;align-items:flex-start;gap:11px;margin-bottom:16px}
+  .sh-bar{width:5px;border-radius:4px;align-self:stretch;min-height:42px}
+  .sh-head h3{font-size:18px;font-weight:680;letter-spacing:-.2px;line-height:1.3}
+  .sh-head p{font-size:12.5px;color:var(--text2);margin-top:4px}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:11px 16px;font-size:13px;padding:15px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .kv dt{color:var(--text3);font-size:12.5px}
+  .kv dd{text-align:right;font-weight:550}
+  .sh-actions{display:flex;gap:11px;margin-top:18px}
+  .btn{flex:1;height:45px;border-radius:14px;border:0;font:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:.15s}
+  .btn.ghost{background:var(--surface2);color:var(--text)}
+  .btn.ghost:hover{background:var(--surface3)}
+  .btn.primary{background:var(--accent);color:#fff;box-shadow:0 6px 18px rgba(76,111,255,.35)}
+  .btn.primary:hover{filter:brightness(1.06)}
+  .btn.danger{background:transparent;color:#F0616D;border:1px solid currentColor;flex:0 0 96px}
+  .btn.danger:hover{background:rgba(240,97,109,.09)}
+
+  /* ---------- ② 设置 ---------- */
+  .page-head{padding:8px 20px 16px;font-size:27px;font-weight:700;letter-spacing:-.4px}
+  .sect{margin:0 16px 20px}
+  .sect-t{font-size:11.5px;font-weight:650;color:var(--text3);letter-spacing:.7px;text-transform:uppercase;padding:0 5px 8px}
+  .card{background:var(--surface);border-radius:17px;overflow:hidden;box-shadow:0 1px 2px rgba(16,24,40,.04),0 3px 10px rgba(16,24,40,.045)}
+  .screen.dark .card{box-shadow:0 1px 2px rgba(0,0,0,.3)}
+  .row{display:flex;align-items:center;gap:12px;padding:13px 15px;font-size:13.5px;border-bottom:1px solid var(--line);cursor:pointer;transition:.12s}
+  .row:last-child{border-bottom:0}
+  .row:hover{background:var(--surface2)}
+  .row .lead{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;font-size:13px;flex:0 0 auto;background:var(--surface2)}
+  .row .lbl{flex:1;font-weight:520}
+  .row .lbl i{display:block;font-style:normal;font-size:11px;color:var(--text3);margin-top:2px;font-weight:400}
+  .row .val{font-size:12.5px;color:var(--text3);font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:5px}
+  .row .chev{color:var(--text3);font-size:14px;opacity:.6}
+  .row.accent .val{color:var(--accent);font-weight:600}
+  .sw{width:42px;height:25px;border-radius:14px;background:var(--accent);position:relative;flex:0 0 auto}
+  .sw::after{content:"";position:absolute;top:2.5px;right:2.5px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+  .sw.off{background:var(--surface3)}
+  .sw.off::after{right:auto;left:2.5px}
+
+  /* 作息编辑行 */
+  .slot-row{display:flex;align-items:center;gap:10px;padding:10px 15px;border-bottom:1px solid var(--line)}
+  .slot-row:last-child{border-bottom:0}
+  .slot-no{
+    width:26px;height:26px;border-radius:9px;background:var(--surface2);display:grid;place-items:center;
+    font-size:11.5px;font-weight:650;color:var(--text2);flex:0 0 auto
+  }
+  .slot-time{
+    flex:1;height:36px;border-radius:11px;background:var(--surface2);display:flex;align-items:center;justify-content:center;gap:7px;
+    font-size:13.5px;font-weight:600;font-variant-numeric:tabular-nums;letter-spacing:.3px
+  }
+  .slot-time em{font-style:normal;color:var(--text3);font-weight:400;font-size:12px}
+  .slot-del{width:26px;height:26px;border-radius:8px;border:0;background:transparent;color:var(--text3);cursor:pointer;font-size:15px;flex:0 0 auto}
+  .slot-del:hover{background:rgba(240,97,109,.1);color:#F0616D}
+  .addrow{display:flex;align-items:center;justify-content:center;gap:7px;padding:13px;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer}
+  .addrow:hover{background:var(--surface2)}
+
+  /* 日期/数字步进 */
+  .stepper{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:11px;overflow:hidden}
+  .stepper button{width:32px;height:32px;border:0;background:var(--surface2);color:var(--text2);font-size:16px;cursor:pointer;font-family:inherit}
+  .stepper button:hover{background:var(--surface3);color:var(--text)}
+  .stepper span{min-width:52px;text-align:center;font-size:13px;font-weight:650;font-variant-numeric:tabular-nums}
+
+  /* ---------- ③ 桌面小组件 ---------- */
+  .desktop{position:relative;background:linear-gradient(165deg,#2b3350 0%,#3d2f52 42%,#5b3a52 74%,#8a4f4a 100%);padding:0 18px}
+  .wall-glow{position:absolute;inset:0;background:radial-gradient(420px 300px at 78% 12%,rgba(255,214,160,.36),transparent 62%),radial-gradient(360px 280px at 12% 88%,rgba(120,150,255,.32),transparent 65%);pointer-events:none}
+  .desk-time{text-align:center;margin-top:26px;position:relative}
+  .desk-time b{display:block;font-size:15px;font-weight:600;color:rgba(255,255,255,.92);letter-spacing:.3px}
+  .desk-time i{display:block;font-style:normal;font-size:62px;font-weight:250;color:#fff;letter-spacing:-2px;line-height:1.06;text-shadow:0 3px 20px rgba(0,0,0,.3)}
+  .desk-time u{display:block;text-decoration:none;font-size:13px;color:rgba(255,255,255,.8);margin-top:2px;letter-spacing:.6px}
+
+  .widget{
+    position:relative;border-radius:24px;padding:15px 16px;margin-top:20px;
+    background:var(--wbg);backdrop-filter:blur(26px) saturate(180%);-webkit-backdrop-filter:blur(26px) saturate(180%);
+    box-shadow:0 8px 30px rgba(0,0,0,.26),inset 0 0 0 1px rgba(255,255,255,.16);color:var(--wtext)
+  }
+  .screen.light .widget{--wbg:rgba(255,255,255,.78);--wtext:#171A21;--wsub:rgba(23,26,33,.5)}
+  .screen.dark .widget{--wbg:rgba(22,25,32,.72);--wtext:#EEF1F6;--wsub:rgba(238,241,246,.5)}
+  .w-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+  .w-head b{font-size:12.5px;font-weight:680;display:flex;align-items:center;gap:6px}
+  .w-head b em{font-style:normal;font-size:10px;font-weight:650;background:var(--accent);color:#fff;border-radius:6px;padding:2px 6px}
+  .w-head span{font-size:11px;color:var(--wsub)}
+  .w-item{display:flex;gap:11px;align-items:center;padding:6.5px 0;position:relative}
+  .w-item+.w-item::before{content:"";position:absolute;left:50px;right:0;top:0;height:1px;background:rgba(128,138,160,.2)}
+  .w-time{width:40px;font-size:11.5px;font-weight:680;font-variant-numeric:tabular-nums;flex:0 0 auto}
+  .w-dot{width:3px;height:26px;border-radius:3px;flex:0 0 auto;background:hsl(var(--h) 65% 55%)}
+  .w-txt{flex:1;min-width:0}
+  .w-txt b{display:block;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .w-txt span{display:block;font-size:10px;color:var(--wsub);margin-top:1.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .w-item.past{opacity:.38}
+  .w-item.now .w-time{color:var(--accent)}
+  .w-strip{display:flex;gap:12px;margin-top:20px}
+  .widget.sm{flex:1;margin-top:0;padding:14px}
+  .widget.sm .big{font-size:26px;font-weight:250;letter-spacing:-.8px;line-height:1.1;font-variant-numeric:tabular-nums;margin-top:2px}
+  .widget.sm .nm{font-size:12px;font-weight:650;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .widget.sm .rm{font-size:10.5px;color:var(--wsub);margin-top:2px}
+  .widget.sm .tag{font-size:10px;font-weight:650;color:var(--accent);letter-spacing:.5px}
+  .prog{height:4px;border-radius:3px;background:rgba(128,138,160,.24);margin-top:11px;overflow:hidden}
+  .prog b{display:block;height:100%;width:38%;border-radius:3px;background:var(--accent)}
+
+  .dock{position:absolute;left:18px;right:18px;bottom:20px;height:74px;border-radius:25px;background:rgba(255,255,255,.17);backdrop-filter:blur(22px);display:flex;align-items:center;justify-content:space-around;padding:0 16px}
+  .app-icon{width:52px;height:52px;border-radius:15px;box-shadow:0 3px 10px rgba(0,0,0,.2)}
+  .app-icon.o{background:linear-gradient(140deg,#6B8AFF,#A56BFF);display:grid;place-items:center;color:#fff;font-weight:700;font-size:22px}
+  .app-icon.a{background:linear-gradient(140deg,#34C77B,#22B8CF)}
+  .app-icon.b{background:linear-gradient(140deg,#FF9F43,#F0616D)}
+  .app-icon.c{background:linear-gradient(140deg,#9C6ADE,#F368A0)}
+
+  /* ---------- 底部说明 ---------- */
+  .notes{max-width:1440px;margin:44px auto 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+  .note{background:var(--stage-card);border:1px solid var(--stage-line);border-radius:17px;padding:19px 21px}
+  .note h3{font-size:13.5px;font-weight:650;margin-bottom:11px;display:flex;align-items:center;gap:8px}
+  .note h3 i{font-style:normal;font-size:10.5px;font-weight:700;background:rgba(107,138,255,.2);color:#93A8FF;border-radius:7px;padding:3px 8px}
+  .note ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+  .note li{font-size:12.5px;color:var(--stage-fg2);line-height:1.62;padding-left:15px;position:relative}
+  .note li::before{content:"";position:absolute;left:0;top:7.5px;width:5px;height:5px;border-radius:50%;background:#6B8AFF;opacity:.75}
+  .note li b{color:var(--stage-fg);font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="logo">O</div>
+    <div>
+      <h1>Obsession</h1>
+      <p>无广告课表 · 界面原型 v0.2 · 这一版先看视觉与交互，代码未动</p>
+    </div>
+  </div>
+  <div class="theme-switch">
+    <button class="tbtn active" data-theme="light">柔光</button>
+    <button class="tbtn" data-theme="dark">墨影</button>
+  </div>
+</div>
+
+<div class="frames">
+
+  <!-- ========== ① 课表主页 ========== -->
+  <div class="frame">
+    <div class="ftitle"><i>1</i>课表主页</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen light" id="s1">
+        <div class="statusbar">
+          <span>13:20</span>
+          <span class="right">
+            <span class="bars"><i></i><i></i><i></i><i></i></span>
+            <span style="font-size:9px;opacity:.7">5G</span>
+            <span class="bat"><b></b></span>
+          </span>
+        </div>
+        <div class="app">
+          <div class="head">
+            <div>
+              <div class="sem"><em></em>2026–2027 学年 · 秋季学期</div>
+              <h2>第 3 周 <span>周次</span></h2>
+              <h2><small>9月14日 – 9月20日</small></h2>
+            </div>
+            <button class="icon-btn" title="设置">⚙</button>
+          </div>
+
+          <div class="weekbar">
+            <button class="wk-btn">‹</button>
+            <div class="wk-track">
+              <div class="wk-pill">1</div><div class="wk-pill">2</div>
+              <div class="wk-pill on">3</div>
+              <div class="wk-pill">4</div><div class="wk-pill">5</div><div class="wk-pill">6</div>
+            </div>
+            <button class="wk-btn">›</button>
+          </div>
+
+          <div class="dow">
+            <div></div>
+            <div>一<b>14</b></div>
+            <div class="today">二<b>15</b></div>
+            <div>三<b>16</b></div>
+            <div>四<b>17</b></div>
+            <div>五<b>18</b></div>
+            <div>六<b>19</b></div>
+            <div>日<b>20</b></div>
+          </div>
+
+          <div class="grid-wrap">
+            <div class="grid-bg" id="gridbg"></div>
+            <div class="grid-course">
+              <!-- 周一 -->
+              <div class="course" data-h="220" data-t="高等数学" data-r="A-201 · 张伟" data-w="周一 第 1–2 节" data-x="08:00 – 09:40" data-at="连堂 2 节" style="--h:220;grid-column:2;grid-row:1/span 2">
+                <b>高等数学</b><span>A-201</span>
+              </div>
+              <div class="course" data-h="152" data-t="大学英语" data-r="B-105 · 李娜" data-w="周一 第 3–4 节" data-x="10:00 – 11:40" data-at="连堂 2 节" style="--h:152;grid-column:2;grid-row:3/span 2">
+                <b>大学英语</b><span>B-105</span>
+              </div>
+              <div class="course" data-h="188" data-t="程序设计基础" data-r="实验楼 D-302 · 陈明" data-w="周一 第 6–7 节" data-x="14:55 – 16:40" data-at="连堂 2 节" style="--h:188;grid-column:2;grid-row:6/span 2">
+                <b>程序设计基础</b><span>实验楼 D-302</span>
+              </div>
+              <!-- 周二 = 今天 -->
+              <div class="course" data-h="268" data-t="线性代数" data-r="A-301 · 王强" data-w="周二 第 1–2 节" data-x="08:00 – 09:40" data-at="连堂 2 节" style="--h:268;grid-column:3;grid-row:1/span 2">
+                <b>线性代数</b><span>A-301</span>
+              </div>
+              <!-- 重叠课程 -->
+              <div class="courses-split" style="grid-column:3;grid-row:3/span 2">
+                <div class="csplit" data-h="28" data-t="数据结构" data-r="A-303 · 刘洋" data-w="周二 第 3–4 节" data-x="10:00 – 11:40" data-at="⚠ 与「计算机网络」时间冲突" style="--h:28"><p>数据结构</p></div>
+                <div class="csplit" data-h="330" data-t="计算机网络" data-r="A-305 · 孙倩" data-w="周二 第 3–4 节" data-x="10:00 – 11:40" data-at="⚠ 与「数据结构」时间冲突" style="--h:330"><p>计算机网络</p></div>
+                <div class="split-badge">2 门</div>
+              </div>
+              <div class="course" data-h="188" data-t="体育（羽毛球）" data-r="体育馆 · 周涛" data-w="周二 第 6–7 节" data-x="14:55 – 16:40" data-at="连堂 2 节" style="--h:188;grid-column:3;grid-row:6/span 2">
+                <b>体育（羽毛球）</b><span>体育馆</span>
+              </div>
+              <!-- 周三 -->
+              <div class="course" data-h="354" data-t="概率论与数理统计" data-r="A-201 · 吴静" data-w="周三 第 1–2 节" data-x="08:00 – 09:40" data-at="连堂 2 节" style="--h:354;grid-column:4;grid-row:1/span 2">
+                <b>概率论与数理统计</b><span>A-201</span>
+              </div>
+              <div class="course" data-h="268" data-t="计算机组成原理" data-r="C-402 · 郑凯" data-w="周三 第 5–6 节" data-x="14:00 – 15:40" data-at="连堂 2 节" style="--h:268;grid-column:4;grid-row:5/span 2">
+                <b>计算机组成原理</b><span>C-402</span>
+              </div>
+              <div class="course" data-h="28" data-t="数据结构实验" data-r="机房 3-201 · 刘洋" data-w="周三 第 8–9 节" data-x="16:55 – 18:35" data-at="连堂 2 节" style="--h:28;grid-column:4;grid-row:8/span 2">
+                <b>数据结构实验</b><span>机房 3-201</span>
+              </div>
+              <!-- 周四 -->
+              <div class="course" data-h="42" data-t="马克思主义基本原理" data-r="D-101 · 何伟" data-w="周四 第 3–4 节" data-x="10:00 – 11:40" data-at="连堂 2 节" style="--h:42;grid-column:5;grid-row:3/span 2">
+                <b>马克思主义基本原理</b><span>D-101</span>
+              </div>
+              <div class="course" data-h="152" data-t="大学物理实验" data-r="物理楼 204 · 赵磊" data-w="周四 第 7–8 节" data-x="16:00 – 17:40" data-at="连堂 2 节" style="--h:152;grid-column:5;grid-row:7/span 2">
+                <b>大学物理实验</b><span>物理楼 204</span>
+              </div>
+              <!-- 周五 -->
+              <div class="course" data-h="220" data-t="高等数学" data-r="A-201 · 张伟" data-w="周五 第 1–2 节" data-x="08:00 – 09:40" data-at="连堂 2 节" style="--h:220;grid-column:6;grid-row:1/span 2">
+                <b>高等数学</b><span>A-201</span>
+              </div>
+              <div class="course" data-h="330" data-t="大学物理" data-r="B-203 · 赵磊" data-w="周五 第 5–6 节" data-x="14:00 – 15:40" data-at="连堂 2 节" style="--h:330;grid-column:6;grid-row:5/span 2">
+                <b>大学物理</b><span>B-203</span>
+              </div>
+              <!-- 周六 -->
+              <div class="course" data-h="354" data-t="概率论习题课" data-r="A-201 · 吴静" data-w="周六 第 1–2 节" data-x="08:00 – 09:40" data-at="单周 · 连堂 2 节" style="--h:354;grid-column:7;grid-row:1/span 2">
+                <b>概率论习题课</b><span>单周</span>
+              </div>
+            </div>
+          </div>
+
+          <button class="fab">＋</button>
+
+          <div class="sheet-mask" id="mask"></div>
+          <div class="sheet" id="sheet">
+            <div class="grab"></div>
+            <div class="sh-head">
+              <div class="sh-bar" id="shbar"></div>
+              <div>
+                <h3 id="sht">高等数学</h3>
+                <p id="shp">周三 第 1–2 节 · 连堂 2 节</p>
+              </div>
+            </div>
+            <dl class="kv">
+              <dt>时间</dt><dd id="shx">08:00 – 09:40</dd>
+              <dt>地点</dt><dd id="shr">A-201</dd>
+              <dt>状态</dt><dd id="sha" style="color:var(--accent)">连堂 2 节</dd>
+            </dl>
+            <div class="sh-actions">
+              <button class="btn danger" id="shclose">关闭</button>
+              <button class="btn ghost">编辑</button>
+              <button class="btn primary">导出图片</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="fcap">点任意课程块看详情 · 周三 3–4 节是<b>重叠课程</b>，左右分栏竖排，右上角带「2 门」角标</p>
+  </div>
+
+  <!-- ========== ② 设置 ========== -->
+  <div class="frame">
+    <div class="ftitle"><i>2</i>设置 · 学期与作息</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen light" id="s2">
+        <div class="statusbar">
+          <span>13:20</span>
+          <span class="right">
+            <span class="bars"><i></i><i></i><i></i><i></i></span>
+            <span style="font-size:9px;opacity:.7">5G</span>
+            <span class="bat"><b></b></span>
+          </span>
+        </div>
+        <div class="app">
+          <div class="page-head">设置</div>
+          <div class="scroll">
+
+            <div class="sect">
+              <div class="sect-t">学期</div>
+              <div class="card">
+                <div class="row">
+                  <div class="lead">📅</div>
+                  <div class="lbl">学年与学期<i>决定课表归属，可多学期归档</i></div>
+                  <div class="val">2026–2027 秋</div>
+                  <div class="chev">›</div>
+                </div>
+                <div class="row">
+                  <div class="lead">🚩</div>
+                  <div class="lbl">第一周起始日<i>用来推算每周的真实日期</i></div>
+                  <div class="val">9月1日（周二）</div>
+                  <div class="chev">›</div>
+                </div>
+                <div class="row">
+                  <div class="lead">🔢</div>
+                  <div class="lbl">总周数</div>
+                  <div class="stepper"><button>−</button><span>18</span><button>＋</button></div>
+                </div>
+                <div class="row accent">
+                  <div class="lead">📌</div>
+                  <div class="lbl">当前周<i>打开 App 时默认停在这一周</i></div>
+                  <div class="val">第 3 周 ›</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="sect">
+              <div class="sect-t">作息时间 · 共 12 节</div>
+              <div class="card">
+                <div class="slot-row"><div class="slot-no">1</div><div class="slot-time">08:00 <em>–</em> 08:45</div><button class="slot-del">✕</button></div>
+                <div class="slot-row"><div class="slot-no">2</div><div class="slot-time">08:55 <em>–</em> 09:40</div><button class="slot-del">✕</button></div>
+                <div class="slot-row"><div class="slot-no">3</div><div class="slot-time">10:00 <em>–</em> 10:45</div><button class="slot-del">✕</button></div>
+                <div class="slot-row"><div class="slot-no">4</div><div class="slot-time">10:55 <em>–</em> 11:40</div><button class="slot-del">✕</button></div>
+                <div class="slot-row"><div class="slot-no">5</div><div class="slot-time">14:00 <em>–</em> 14:45</div><button class="slot-del">✕</button></div>
+                <div class="slot-row"><div class="slot-no">6</div><div class="slot-time">14:55 <em>–</em> 15:40</div><button class="slot-del">✕</button></div>
+                <div class="slot-row"><div class="slot-no">7</div><div class="slot-time">16:00 <em>–</em> 16:45</div><button class="slot-del">✕</button></div>
+                <div class="slot-row"><div class="slot-no">8</div><div class="slot-time">16:55 <em>–</em> 17:40</div><button class="slot-del">✕</button></div>
+                <div class="addrow">＋ 添加一节</div>
+              </div>
+            </div>
+
+            <div class="sect">
+              <div class="sect-t">外观</div>
+              <div class="card">
+                <div class="row">
+                  <div class="lead">🌗</div>
+                  <div class="lbl">主题</div>
+                  <div class="val">跟随系统 ›</div>
+                </div>
+                <div class="row">
+                  <div class="lead">🎨</div>
+                  <div class="lbl">课程配色<i>同一门课在课表与小组件保持一致</i></div>
+                  <div class="val">8 色 ›</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="sect">
+              <div class="sect-t">数据</div>
+              <div class="card">
+                <div class="row"><div class="lead">📥</div><div class="lbl">导入课表<i>兼容 WakeUp 导出的 .wakeup_schedule</i></div><div class="chev">›</div></div>
+                <div class="row"><div class="lead">📤</div><div class="lbl">导出课表</div><div class="chev">›</div></div>
+                <div class="row"><div class="lead">🧹</div><div class="lbl" style="color:#F0616D">清空所有课程</div><div class="chev">›</div></div>
+              </div>
+            </div>
+
+            <div style="height:24px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="fcap">学期设置刚好补上你的需求：<b>第一周起始日 + 总周数</b>，课表上方就能显示真实日期区间</p>
+  </div>
+
+  <!-- ========== ③ 桌面小组件 ========== -->
+  <div class="frame">
+    <div class="ftitle"><i>3</i>桌面小组件</div>
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="screen light" id="s3">
+        <div class="statusbar" style="color:#fff">
+          <span>13:20</span>
+          <span class="right">
+            <span class="bars"><i></i><i></i><i></i><i></i></span>
+            <span style="font-size:9px;opacity:.7">5G</span>
+            <span class="bat"><b></b></span>
+          </span>
+        </div>
+        <div class="app desktop">
+          <div class="wall-glow"></div>
+          <div class="desk-time">
+            <b>9月15日 星期二</b>
+            <i>13:20</i>
+            <u>3 门课 · 下节 14:55</u>
+          </div>
+
+          <div class="widget">
+            <div class="w-head">
+              <b>今天 · 周二 <em>3 门</em></b>
+              <span>第 3 周</span>
+            </div>
+            <div class="w-item past" style="--h:268">
+              <div class="w-time">08:00</div><div class="w-dot"></div>
+              <div class="w-txt"><b>线性代数</b><span>A-301 · 第 1–2 节</span></div>
+            </div>
+            <div class="w-item past" style="--h:28">
+              <div class="w-time">10:00</div><div class="w-dot"></div>
+              <div class="w-txt"><b>数据结构 / 计算机网络</b><span>A-303 · 第 3–4 节 · 时间冲突</span></div>
+            </div>
+            <div class="w-item now" style="--h:188">
+              <div class="w-time">14:55</div><div class="w-dot"></div>
+              <div class="w-txt"><b>体育（羽毛球）</b><span>体育馆 · 第 6–7 节</span></div>
+            </div>
+          </div>
+
+          <div class="w-strip">
+            <div class="widget sm">
+              <div class="tag">下一节课</div>
+              <div class="big">14:55</div>
+              <div class="nm">体育（羽毛球）</div>
+              <div class="rm">体育馆</div>
+              <div class="prog"><b></b></div>
+            </div>
+            <div class="widget sm">
+              <div class="tag">今天进度</div>
+              <div class="big">3<small style="font-size:12px;font-weight:500"> 门课</small></div>
+              <div class="nm">已上 2 · 待上 1</div>
+              <div class="rm">第 3 周 · 周二</div>
+              <div class="prog"><b style="width:66%"></b></div>
+            </div>
+          </div>
+
+          <div class="dock">
+            <div class="app-icon o">O</div>
+            <div class="app-icon a"></div>
+            <div class="app-icon b"></div>
+            <div class="app-icon c"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="fcap">小组件方案：<b>4×2 今日课表</b>（已上过的课自动淡出）+ <b>2×2 下一节</b> / <b>2×2 今日进度</b>两种小尺寸</p>
+  </div>
+
+</div>
+
+<div class="notes">
+  <div class="note">
+    <h3><i>已按你的答案实现</i></h3>
+    <ul>
+      <li><b>桌面小组件</b>：4×2 今日课表 + 两个 2×2 小尺寸，自动淡化已上过的课</li>
+      <li><b>学期设置</b>：第一周起始日 + 总周数 + 当前周，课表顶部显示真实日期区间</li>
+      <li><b>重叠课程并排</b>：左右分栏 + 竖排课名 + 「2 门」角标，不再互相遮盖</li>
+      <li><b>视觉</b>：两套完整主题（柔光 / 墨影），右上角切换；课程块圆角 + 色条 + 悬停浮起</li>
+    </ul>
+  </div>
+  <div class="note">
+    <h3><i>请你定这 5 件事</i></h3>
+    <ul>
+      <li><b>主题</b>：柔光 / 墨影只留一套，还是两套都做（跟随系统自动切）？</li>
+      <li><b>课程块信息</b>：现在只显示课名 + 教室。要不要再挤进教师名？（会更挤）</li>
+      <li><b>重叠课程</b>：竖排分栏能接受吗？也可以改成「层叠 + 2 门角标，点击展开」</li>
+      <li><b>小组件</b>：要哪几种尺寸？4×2 / 2×2 / 4×1 简洁条，可多选</li>
+      <li><b>配色</b>：主色现在是蓝紫。要不要换成别的，或者做成可自选强调色？</li>
+    </ul>
+  </div>
+  <div class="note">
+    <h3><i>原型没画、但你可能想要的</i></h3>
+    <ul>
+      <li>课程编辑表单（课程名 / 教师 / 教室 / 周次范围 / 单双周 / 颜色）</li>
+      <li>首页下拉显示「明天有 3 门课」的提醒卡</li>
+      <li>课表截图分享（带水印的图片，发给同学）</li>
+      <li>课前提醒 —— 你这次没勾，我先不做，需要随时说</li>
+    </ul>
+  </div>
+  <div class="note">
+    <h3><i>说明</i></h3>
+    <ul>
+      <li>这是<b>网页原型</b>，用来先确认视觉和交互；确认后我再改 Android 代码，避免反复打包</li>
+      <li>日期按真实历法排：2026-09-01 是周二，所以第 3 周 = 9/14–9/20，今天 9/15 周二</li>
+      <li>课程数据是编的示例，便于你看密度；左侧时间列每节同时显示上课与下课时间</li>
+      <li>点击任意课程块可弹出详情卡，验证交互手感</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+  // 生成课表背景网格（12 节 × 7 天）
+  (function(){
+    var times = [
+      ['08:00','08:45'],['08:55','09:40'],['10:00','10:45'],['10:55','11:40'],
+      ['14:00','14:45'],['14:55','15:40'],['16:00','16:45'],['16:55','17:40'],
+      ['19:00','19:45'],['19:55','20:40'],['20:50','21:35'],['21:45','22:30']
+    ];
+    var today = 1; // 周二为今天
+    var html = '';
+    for (var r = 0; r < times.length; r++) {
+      html += '<div class="cell time"><b>' + (r+1) + '</b><i>' + times[r][0] + '</i><i>' + times[r][1] + '</i></div>';
+      for (var d = 0; d < 7; d++) {
+        html += '<div class="cell' + (d === today ? ' today' : '') + '"></div>';
+      }
+    }
+    var bg = document.getElementById('gridbg');
+    if (bg) bg.innerHTML = html;
+  })();
+
+  // 主题切换
+  document.querySelectorAll('.tbtn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.tbtn').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      var t = btn.dataset.theme;
+      document.querySelectorAll('.screen').forEach(function(s){
+        s.classList.remove('light','dark');
+        s.classList.add(t);
+      });
+    });
+  });
+
+  // 课程详情弹层
+  (function(){
+    var mask = document.getElementById('mask');
+    var sheet = document.getElementById('sheet');
+    var bar = document.getElementById('shbar');
+
+    function open(el){
+      var h = el.dataset.h || '220';
+      bar.style.background = 'hsl(' + h + ' 62% 55%)';
+      document.getElementById('sht').textContent = el.dataset.t || '';
+      document.getElementById('shp').textContent = el.dataset.w || '';
+      document.getElementById('shx').textContent = el.dataset.x || '';
+      document.getElementById('shr').textContent = el.dataset.r || '';
+      var at = document.getElementById('sha');
+      at.textContent = el.dataset.at || '';
+      at.style.color = (el.dataset.at || '').indexOf('冲突') > -1 ? '#F0616D' : 'var(--accent)';
+      mask.classList.add('show');
+      sheet.classList.add('show');
+    }
+    function close(){
+      mask.classList.remove('show');
+      sheet.classList.remove('show');
+    }
+
+    document.querySelectorAll('#s1 .course, #s1 .csplit').forEach(function(el){
+      el.addEventListener('click', function(e){ e.stopPropagation(); open(el); });
+    });
+    mask.addEventListener('click', close);
+    document.getElementById('shclose').addEventListener('click', close);
+
+    // 周次胶囊
+    document.querySelectorAll('#s1 .wk-pill').forEach(function(p){
+      p.addEventListener('click', function(){
+        document.querySelectorAll('#s1 .wk-pill').forEach(function(x){ x.classList.remove('on'); });
+        p.classList.add('on');
+      });
+    });
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  今日课表里的一行课程，由 RemoteViews.addView 动态填充。
+  整行是胶囊样式：圆角底 + 时间 + 状态圆点 + 课程信息。
+  背景 drawable 由渲染器按「已上过 / 正在上 / 未开始」三态切换。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/item_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="4dp"
+    android:background="@drawable/widget_row_upcoming"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="8dp"
+    android:paddingEnd="10dp"
+    android:paddingTop="5dp"
+    android:paddingBottom="5dp">
+
+    <TextView
+        android:id="@+id/item_time"
+        android:layout_width="40dp"
+        android:layout_height="wrap_content"
+        android:textColor="@color/widget_text_dim"
+        android:textSize="11sp"
+        android:textStyle="bold" />
+
+    <View
+        android:id="@+id/item_dot"
+        android:layout_width="6dp"
+        android:layout_height="6dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/widget_dot" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/item_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/widget_text"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/item_room"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/widget_text_dim"
+            android:textSize="10sp" />
+    </LinearLayout>
+</LinearLayout>

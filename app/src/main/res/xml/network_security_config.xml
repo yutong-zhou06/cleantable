@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  内置浏览器导入需要访问的老教务系统很多还是 http 明文站点。
+  本应用只读取页面内容用于解析课表、不上传任何用户数据，
+  因此这里放行明文流量；仅内置浏览器页使用网络能力。
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

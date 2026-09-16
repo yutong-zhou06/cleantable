@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  updatePeriodMillis 最小只能设 30 分钟，系统不允许更频繁。
+  真正的即时刷新走 ScheduleWidgetRenderer.refreshAll()，在课程增删改后主动触发。
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/widget_today_desc"
+    android:initialLayout="@layout/widget_today"
+    android:minHeight="110dp"
+    android:minWidth="250dp"
+    android:resizeMode="horizontal|vertical"
+    android:targetCellHeight="2"
+    android:targetCellWidth="4"
+    android:updatePeriodMillis="1800000"
+    android:widgetCategory="home_screen" />
