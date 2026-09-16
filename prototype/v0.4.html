@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Obsession · 界面原型 v0.4</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{
+    --stage-bg:radial-gradient(1200px 600px at 15% -10%,#28303f 0%,#171a21 45%,#101218 100%);
+    --stage-fg:#E9ECF2;--stage-fg2:#8A93A5;
+    --stage-card:rgba(255,255,255,.045);--stage-line:rgba(255,255,255,.09);
+  }
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    background:var(--stage-bg);background-attachment:fixed;color:var(--stage-fg);
+    min-height:100vh;padding:34px 22px 80px;-webkit-font-smoothing:antialiased;
+  }
+  .topbar{max-width:1860px;margin:0 auto 10px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:13px}
+  .logo{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:21px;font-weight:700;color:#fff;
+    background:linear-gradient(135deg,#6B8AFF,#A56BFF);box-shadow:0 6px 20px rgba(107,138,255,.4)}
+  .brand h1{font-size:19px;letter-spacing:.4px;font-weight:650}
+  .brand p{font-size:12px;color:var(--stage-fg2);margin-top:2px}
+  .theme-switch{display:flex;gap:8px;background:var(--stage-card);border:1px solid var(--stage-line);padding:5px;border-radius:13px}
+  .tbtn{border:0;background:transparent;color:var(--stage-fg2);font:inherit;font-size:13px;padding:8px 17px;border-radius:9px;cursor:pointer;transition:.18s;font-family:inherit}
+  .tbtn:hover{color:var(--stage-fg)}
+  .tbtn.active{background:rgba(255,255,255,.12);color:#fff;box-shadow:0 1px 6px rgba(0,0,0,.25)}
+
+  .hint{max-width:1860px;margin:0 auto 30px;font-size:12.5px;color:var(--stage-fg2);line-height:1.7;
+    background:var(--stage-card);border:1px solid var(--stage-line);border-radius:14px;padding:12px 18px}
+  .hint b{color:#9FB4FF;font-weight:600}
+
+  .frames{max-width:1860px;margin:0 auto;display:flex;gap:30px;justify-content:center;align-items:flex-start;flex-wrap:wrap}
+  .frame{display:flex;flex-direction:column;align-items:center;gap:13px;flex:0 0 auto}
+  .ftitle{display:flex;align-items:center;gap:9px;font-size:13.5px;font-weight:600;color:var(--stage-fg)}
+  .ftitle i{font-style:normal;width:20px;height:20px;border-radius:7px;background:rgba(107,138,255,.2);color:#93A8FF;display:grid;place-items:center;font-size:11px;font-weight:700}
+  .fcap{font-size:11.5px;color:var(--stage-fg2);text-align:center;line-height:1.65;max-width:360px}
+  .fcap b{color:#A9BAFF;font-weight:600}
+
+  .phone{width:390px;height:812px;border-radius:46px;padding:9px;position:relative;
+    background:linear-gradient(160deg,#3a4050,#1d2129 40%,#2a2f3a);
+    box-shadow:0 26px 60px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.07),inset 0 1px 1px rgba(255,255,255,.14)}
+  .screen{width:100%;height:100%;border-radius:38px;overflow:hidden;position:relative;background:var(--bg);color:var(--text);transition:background .25s,color .25s}
+  .notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:104px;height:24px;border-radius:14px;background:#0b0d11;z-index:60}
+
+  .screen.light{--bg:#F5F6F9;--surface:#FFFFFF;--surface2:#EEF0F5;--surface3:#E5E8EF;
+    --text:#171A21;--text2:#5C6472;--text3:#9AA1AF;--line:#E4E7EE;--today:rgba(76,111,255,.05);--accent:#4C6FFF}
+  .screen.dark{--bg:#0E1015;--surface:#171A21;--surface2:#1E222B;--surface3:#262B36;
+    --text:#E9ECF2;--text2:#98A1B0;--text3:#666E7D;--line:#232833;--today:rgba(107,138,255,.07);--accent:#6B8AFF}
+
+  .statusbar{height:44px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 24px 7px;font-size:13px;font-weight:650;letter-spacing:.2px;position:relative;z-index:50}
+  .statusbar .r{display:flex;gap:5px;align-items:center;font-size:11px}
+
+  @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  @keyframes pop{from{opacity:0;transform:translateY(24px) scale(.96)}to{opacity:1;transform:none}}
+  @keyframes gridIn{from{opacity:.35;transform:translateX(14px)}to{opacity:1;transform:none}}
+  @keyframes gridInBack{from{opacity:.35;transform:translateX(-14px)}to{opacity:1;transform:none}}
+  @keyframes pageIn{from{opacity:0;transform:translateX(56px)}to{opacity:1;transform:none}}
+  @keyframes pageBack{from{opacity:0;transform:translateX(-56px)}to{opacity:1;transform:none}}
+  @keyframes sheetUp{from{transform:translateY(100%)}to{transform:none}}
+  @keyframes toastIn{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes shimmer{0%{background-position:-300px 0}100%{background-position:300px 0}}
+
+  /* 页面路由：同屏多页切换（返回逻辑演示） */
+  .page{position:absolute;inset:0;display:none;flex-direction:column;background:var(--bg)}
+  .page.active{display:flex}
+  .page.anim-fwd{animation:pageIn .26s cubic-bezier(.2,.7,.3,1)}
+  .page.anim-back{animation:pageBack .26s cubic-bezier(.2,.7,.3,1)}
+
+  .apphead{padding:8px 18px 4px}
+  .apphead .sem{font-size:11.5px;color:var(--text3);letter-spacing:.3px}
+  .apphead .wk{display:flex;align-items:flex-end;justify-content:space-between;margin-top:2px}
+  .apphead h2{font-size:26px;font-weight:750;letter-spacing:.3px;cursor:pointer;user-select:none;transition:.15s}
+  .apphead h2:active{transform:scale(.97)}
+  .apphead .dt{font-size:12px;color:var(--text2);margin-top:1px}
+  .wknav{display:flex;gap:2px;align-items:center}
+  .iconbtn{width:34px;height:34px;border-radius:11px;border:0;background:transparent;color:var(--text2);font-size:17px;cursor:pointer;display:grid;place-items:center;transition:.16s;font-family:inherit}
+  .iconbtn:hover{background:var(--surface2);color:var(--text)}
+  .iconbtn:active{transform:scale(.88)}
+
+  .gridwrap{margin:8px 10px 0;border-radius:20px;overflow:hidden;position:relative;background:var(--surface);
+    box-shadow:0 1px 3px rgba(9,12,20,.05),0 8px 22px rgba(9,12,20,.06);touch-action:pan-y;user-select:none}
+  .grid{position:relative;display:grid;grid-template-columns:44px repeat(7,1fr);grid-template-rows:44px repeat(10,1fr);height:470px}
+  .grid.anim-next{animation:gridIn .22s ease-out}
+  .grid.anim-prev{animation:gridInBack .22s ease-out}
+  .gcell{border-right:.5px solid var(--line);border-bottom:.5px solid var(--line)}
+  .gcell:nth-child(8n){border-right:0}
+  .timecol{position:relative}
+  .timecol .n{position:absolute;top:5px;left:0;right:0;text-align:center;font-size:11.5px;font-weight:650;color:var(--text2)}
+  .dow{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border-bottom:.5px solid var(--line)!important}
+  .dow .d{font-size:12.5px;font-weight:650}
+  .dow .dd{font-size:9.5px;color:var(--text3)}
+  .dow.today .d{color:var(--accent)}
+  .dow.today .dd{color:var(--accent);font-weight:650}
+
+  .course{margin:2px;border-radius:11px;padding:6px 7px;overflow:hidden;cursor:pointer;position:relative;
+    background:hsl(var(--h) 68% 53% / .125);
+    box-shadow:inset 0 0 0 1px hsl(var(--h) 62% 50% / .17),inset 3px 0 0 hsl(var(--h) 66% 56%);
+    color:hsl(var(--h) 52% 28%);transition:transform .14s,box-shadow .14s;animation:rise .3s ease-out both}
+  .course p{font-size:10.5px;font-weight:650;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .course span{font-size:8.5px;opacity:.75;display:block;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .course:active{transform:scale(.955)}
+  .screen.dark .course{background:hsl(var(--h) 62% 54% / .17);box-shadow:inset 0 0 0 1px hsl(var(--h) 58% 60% / .19),inset 3px 0 0 hsl(var(--h) 60% 62%);color:hsl(var(--h) 70% 79%)}
+
+  /* 滑动切周提示浮层 */
+  .swipetip{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);font-size:10.5px;color:var(--text3);
+    background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:4px 12px;white-space:nowrap;z-index:5;
+    animation:swipeHint 2.6s ease-in-out infinite;pointer-events:none}
+  @keyframes swipeHint{0%,100%{transform:translateX(-50%)}25%{transform:translateX(calc(-50% - 14px))}60%{transform:translateX(calc(-50% + 14px))}}
+
+  .weekbadge{position:absolute;top:50px;left:50%;transform:translateX(-50%);z-index:6;font-size:10.5px;font-weight:650;
+    color:#fff;background:rgba(20,23,32,.72);border-radius:99px;padding:4px 12px;opacity:0;transition:.2s;pointer-events:none;backdrop-filter:blur(6px)}
+  .weekbadge.show{opacity:1}
+
+  /* ================= 底部面板 / 弹窗 ================= */
+  .mask{position:absolute;inset:0;background:rgba(10,12,18,.42);z-index:80;display:none;opacity:0;transition:opacity .2s}
+  .mask.show{display:block;opacity:1}
+  .sheet{position:absolute;left:0;right:0;bottom:0;background:var(--surface);border-radius:26px 26px 0 0;z-index:90;
+    padding:10px 20px calc(16px + 10px);display:none;box-shadow:0 -10px 40px rgba(0,0,0,.18)}
+  .sheet.show{display:block;animation:sheetUp .3s cubic-bezier(.2,.7,.3,1)}
+  .grabber{width:38px;height:4.5px;border-radius:3px;background:var(--surface3);margin:0 auto 12px}
+  .sheet h3{font-size:16.5px;font-weight:700;letter-spacing:.2px}
+  .sheet .sub{font-size:11.5px;color:var(--text3);margin-top:2px}
+
+  .dialog{position:absolute;inset:0;z-index:95;display:none;align-items:center;justify-content:center;padding:26px}
+  .dialog.show{display:flex}
+  .dialog .card{width:100%;background:var(--surface);border-radius:22px;padding:20px;box-shadow:0 18px 50px rgba(0,0,0,.3);
+    animation:pop .28s cubic-bezier(.2,.7,.3,1);max-height:78%;display:flex;flex-direction:column}
+
+  .btn{border:0;font-family:inherit;font-size:13.5px;font-weight:650;padding:10px 18px;border-radius:13px;cursor:pointer;transition:.15s}
+  .btn:active{transform:scale(.96)}
+  .btn.primary{background:var(--accent);color:#fff;box-shadow:0 5px 16px rgba(76,111,255,.35)}
+  .btn.ghost{background:var(--surface2);color:var(--text2)}
+  .btn.danger{background:rgba(255,92,92,.12);color:#E5484D}
+  .btnrow{display:flex;gap:10px;margin-top:16px}
+  .btnrow .btn{flex:1}
+
+  .toast{position:absolute;left:50%;bottom:60px;transform:translateX(-50%);background:rgba(20,23,32,.9);color:#fff;
+    font-size:12.5px;padding:9px 18px;border-radius:99px;z-index:120;animation:toastIn .25s ease-out;pointer-events:none;white-space:nowrap;backdrop-filter:blur(6px)}
+
+  /* ================= 跳周面板 ================= */
+  .wgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:12px}
+  .wgrid button{border:1px solid var(--line);background:transparent;color:var(--text2);font-family:inherit;font-size:13px;font-weight:650;
+    padding:9px 0;border-radius:11px;cursor:pointer;transition:.13s}
+  .wgrid button:hover{border-color:var(--accent);color:var(--accent)}
+  .wgrid button.cur{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(76,111,255,.35)}
+  .wgrid button.future{color:var(--text3)}
+  .wslider{margin-top:14px;display:flex;align-items:center;gap:12px}
+  .wslider input[type=range]{flex:1;accent-color:var(--accent);height:26px}
+  .wslider .val{font-size:13px;font-weight:700;color:var(--accent);min-width:56px;text-align:right}
+  .winput{margin-top:14px;display:flex;gap:10px;align-items:center}
+  .winput input{flex:1;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:10px 14px;
+    font-family:inherit;font-size:14px;color:var(--text);outline:none}
+  .winput input:focus{border-color:var(--accent)}
+  .sectlabel{font-size:11px;color:var(--text3);font-weight:650;letter-spacing:.6px;margin-top:16px}
+
+  /* ================= 导入预览 ================= */
+  .plist{margin-top:12px;overflow-y:auto;border:1px solid var(--line);border-radius:14px;flex:1;min-height:0}
+  .pitem{padding:9px 13px;border-bottom:.5px solid var(--line);display:flex;gap:10px;align-items:center;animation:rise .3s ease-out both}
+  .pitem:last-child{border-bottom:0}
+  .pitem .dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+  .pitem .nm{font-size:12.5px;font-weight:650}
+  .pitem .mt{font-size:10.5px;color:var(--text3);margin-top:1px}
+  .psrc{display:flex;align-items:center;gap:8px;background:var(--today);border:1px solid var(--line);border-radius:12px;padding:9px 12px;margin-top:12px}
+  .psrc .ic{width:28px;height:28px;border-radius:9px;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:14px;flex:0 0 auto}
+  .psrc .t1{font-size:12px;font-weight:650}
+  .psrc .t2{font-size:10.5px;color:var(--text3)}
+
+  /* ================= 设置页 ================= */
+  .subhead{display:flex;align-items:center;gap:10px;padding:10px 18px 12px}
+  .subhead h2{font-size:20px;font-weight:750}
+  .setgroup{margin:0 14px 14px;background:var(--surface);border-radius:18px;overflow:hidden;border:1px solid var(--line)}
+  .setrow{display:flex;align-items:center;gap:13px;padding:14px 16px;cursor:pointer;transition:.14s;border-bottom:.5px solid var(--line)}
+  .setrow:last-child{border-bottom:0}
+  .setrow:hover{background:var(--surface2)}
+  .setrow:active{transform:scale(.99)}
+  .setrow .ic{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-size:15px;flex:0 0 auto}
+  .setrow .tx{flex:1}
+  .setrow .t1{font-size:14px;font-weight:650}
+  .setrow .t2{font-size:11px;color:var(--text3);margin-top:1px}
+  .setrow .arw{color:var(--text3);font-size:15px}
+
+  /* 文件选择器（SAF 风格） */
+  .fp-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:.5px solid var(--line);cursor:pointer;transition:.13s}
+  .fp-item:hover{background:var(--surface2)}
+  .fp-item .fic{font-size:20px}
+  .fp-item .fn{font-size:13px;font-weight:650}
+  .fp-item .fm{font-size:10.5px;color:var(--text3)}
+
+  /* ================= 内置浏览器 ================= */
+  .browserbar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--surface2);border-bottom:1px solid var(--line)}
+  .urlbox{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:7px 14px;font-size:11px;color:var(--text2);
+    overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  .webpage{flex:1;overflow-y:auto;background:#fff;color:#222;font-size:12px;padding:14px 16px}
+  .screen.dark .webpage{background:#fff;color:#222}
+  .webpage h4{font-size:15px;color:#1a3c8f;margin-bottom:2px}
+  .webpage .zfname{font-size:11px;color:#888;margin-bottom:12px}
+  .kbcx-table{width:100%;border-collapse:collapse;font-size:11px}
+  .kbcx-table td{border:1px solid #d8dce6;padding:7px 9px}
+  .kbcx-table .hd{background:#eef2fb;font-weight:700;color:#1a3c8f}
+  .detect-pill{position:absolute;right:14px;bottom:88px;z-index:70;border:0;cursor:pointer;font-family:inherit;
+    font-size:12px;font-weight:650;border-radius:99px;padding:11px 17px;color:#fff;
+    background:rgba(30,34,44,.88);color:#cfd5e2;box-shadow:0 6px 20px rgba(0,0,0,.3);transition:.25s;backdrop-filter:blur(8px)}
+  .detect-pill.hit{background:linear-gradient(135deg,#18A05E,#2BC97A);color:#fff;box-shadow:0 8px 24px rgba(43,201,122,.45);
+    animation:pulse 1.6s ease-in-out infinite}
+  .detect-pill.busy{background:rgba(30,34,44,.88);color:#fff}
+  @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+  .sp{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px}
+
+  /* ================= 课程管理页 ================= */
+  .clist{flex:1;overflow-y:auto;padding:4px 14px 20px}
+  .crow{display:flex;align-items:center;gap:13px;background:var(--surface);border:1px solid var(--line);border-radius:16px;
+    padding:13px 15px;margin-bottom:9px;cursor:pointer;transition:.15s;animation:rise .3s ease-out both}
+  .crow:hover{border-color:var(--accent);transform:translateY(-1px)}
+  .crow .cdot{width:13px;height:13px;border-radius:5px;flex:0 0 auto}
+  .crow .cx{flex:1}
+  .crow .cn{font-size:14.5px;font-weight:700}
+  .crow .cm{font-size:11px;color:var(--text3);margin-top:2px}
+  .crow .cnt{font-size:11px;font-weight:700;color:var(--accent);background:var(--today);border-radius:99px;padding:4px 10px}
+  .secrow{display:flex;align-items:center;gap:11px;padding:10px 4px;border-bottom:.5px solid var(--line);cursor:pointer}
+  .secrow:last-child{border-bottom:0}
+  .cbx{width:19px;height:19px;border-radius:7px;border:1.5px solid var(--text3);display:grid;place-items:center;flex:0 0 auto;transition:.13s;font-size:11px;color:#fff}
+  .secrow.on .cbx{background:var(--accent);border-color:var(--accent)}
+  .secrow .st{font-size:12.5px;font-weight:650}
+  .secrow .sm{font-size:10.5px;color:var(--text3);margin-top:1px}
+  .toolrow{display:flex;gap:8px;margin-top:14px}
+  .toolrow .btn{flex:1;padding:10px 4px;font-size:12.5px}
+  .swatches{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+  .swatch{width:34px;height:34px;border-radius:12px;cursor:pointer;border:2px solid transparent;transition:.14s}
+  .swatch:hover{transform:scale(1.12)}
+  .swatch.sel{border-color:var(--text);box-shadow:0 0 0 2px var(--surface),0 0 0 3.5px var(--accent)}
+  .fld{margin-top:11px}
+  .fld label{display:block;font-size:11px;color:var(--text3);font-weight:650;margin-bottom:5px}
+  .fld input,.fld select{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:10px 13px;
+    font-family:inherit;font-size:13px;color:var(--text);outline:none}
+  .fld input:focus,.fld select:focus{border-color:var(--accent)}
+  .fld .r2{display:flex;gap:8px}
+  .fld .r2>*{flex:1}
+
+  /* ================= 微信分享演示 ================= */
+  .wxbg{flex:1;background:#EDEDED;display:flex;flex-direction:column}
+  .wxbar{background:#EDEDED;padding:12px 16px 10px;text-align:center;font-size:14px;font-weight:650;color:#191919;border-bottom:.5px solid #d9d9d9}
+  .wxchat{flex:1;padding:14px;overflow-y:auto}
+  .wxmsg{display:flex;gap:9px;margin-bottom:14px}
+  .wxava{width:36px;height:36px;border-radius:6px;background:linear-gradient(135deg,#5f78c8,#8fa5e8);flex:0 0 auto;display:grid;place-items:center;color:#fff;font-size:14px;font-weight:700}
+  .wxfile{background:#fff;border-radius:4px;padding:12px 14px;min-width:200px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .wxfile .fi{display:flex;gap:10px;align-items:center}
+  .wxfile .fico{width:34px;height:34px;border-radius:6px;background:#3E7EEF;color:#fff;display:grid;place-items:center;font-size:10px;font-weight:800;flex:0 0 auto}
+  .wxfile .fn{font-size:12.5px;color:#191919;font-weight:550}
+  .wxfile .fm{font-size:10.5px;color:#9a9a9a;margin-top:3px}
+  .wxfile .openbar{border-top:.5px solid #eee;margin-top:10px;padding-top:8px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+  .wxfile .openbar span{font-size:11.5px;color:#576b95;cursor:pointer}
+  .sharebar{position:sticky;bottom:0;display:flex;justify-content:space-around;background:#F7F7F7;border-top:.5px solid #e2e2e2;padding:9px 0;font-size:10.5px;color:#7a7a7a}
+  .sharebar b{display:block;font-size:17px;text-align:center;margin-bottom:2px}
+  .approw{display:grid;grid-template-columns:repeat(4,1fr);gap:16px 8px;padding:6px 8px 12px}
+  .appic{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer}
+  .appic .aico{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;color:#fff;font-size:17px;font-weight:800;transition:.15s}
+  .appic:active .aico{transform:scale(.9)}
+  .appic .an{font-size:10px;color:#666}
+  .appic.hl .aico{box-shadow:0 0 0 2.5px #fff,0 0 0 4.5px #4C6FFF}
+  .appic.hl .an{color:#4C6FFF;font-weight:700}
+
+  .gesturebar{position:absolute;bottom:0;left:0;right:0;height:16px;display:flex;align-items:center;justify-content:center;z-index:65}
+  .gesturebar i{width:108px;height:4px;border-radius:3px;background:var(--text3);opacity:.5}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="logo">O</div>
+    <div>
+      <h1>Obsession · 界面原型 v0.4</h1>
+      <p>7 条需求全部可交互 · 验证通过后再动 Android 代码</p>
+    </div>
+  </div>
+  <div class="theme-switch">
+    <button class="tbtn active" onclick="setTheme('light',this)">浅色</button>
+    <button class="tbtn" onclick="setTheme('dark',this)">深色</button>
+  </div>
+</div>
+
+<div class="hint">
+  <b>操作指南</b> — ①主页网格<b>按住左右拖动</b>切周；<b>点顶部「第 N 周」</b>弹出跳周面板（网格＋滑动条＋输入框三合一）。
+  ②设置页按「模拟返回键」验证层级返回；选 HTML 文件后<b>自动跳回主页弹导入预览</b>。
+  ③内置浏览器加载完<b>自动识别课表</b>，悬浮按钮变绿后点击直达导入。
+  ④「已添加课程」按课程聚合，支持批量删除/统一改名/改色/改时间。
+  ⑤微信分享与「打开方式」都能选到 Obsession。
+</div>
+
+<div class="frames">
+
+  <!-- ============ 手机1：主页 + 滑动切周 + 跳周面板 ============ -->
+  <div class="frame">
+    <div class="ftitle"><i>5+7</i> 主页 · 手势切周 + 跳周面板</div>
+    <div class="phone"><div class="notch"></div>
+      <div class="screen light" id="s1">
+        <div class="statusbar"><span>9:41</span><span class="r">📶 🔋</span></div>
+        <div class="apphead">
+          <div class="sem">2026-2027学年第1学期</div>
+          <div class="wk">
+            <div>
+              <h2 id="w1label" onclick="openWeekSheet()">第 6 周</h2>
+              <div class="dt" id="w1date">10/12 – 10/18 · 点击跳转任意周</div>
+            </div>
+            <div class="wknav">
+              <button class="iconbtn" onclick="stepWeek(-1)">‹</button>
+              <button class="iconbtn" onclick="stepWeek(1)">›</button>
+              <button class="iconbtn" onclick="toast('t1','课程管理（原型见第 4 台）')">☰</button>
+              <button class="iconbtn" onclick="toast('t1','设置（原型见第 2 台）')">⚙</button>
+            </div>
+          </div>
+        </div>
+        <div class="gridwrap" id="g1wrap">
+          <div class="weekbadge" id="w1badge">第 6 周</div>
+          <div class="grid" id="g1"></div>
+          <div class="swipetip">⇠ 按住网格左右拖动切换周次 ⇢</div>
+        </div>
+        <div class="gesturebar"><i></i></div>
+
+        <!-- 跳周面板 -->
+        <div class="mask" id="wmask" onclick="closeWeekSheet()"></div>
+        <div class="sheet" id="wsheet">
+          <div class="grabber"></div>
+          <h3>跳转到指定周</h3>
+          <div class="sub">三种方式随便用，结果实时同步</div>
+          <div class="sectlabel">网格点选 · 共 20 周</div>
+          <div class="wgrid" id="wgrid"></div>
+          <div class="sectlabel">滑动条</div>
+          <div class="wslider">
+            <input type="range" id="wslider" min="1" max="20" value="6" oninput="onSlider(this.value)">
+            <div class="val" id="wsliderval">第 6 周</div>
+          </div>
+          <div class="sectlabel">直接输入</div>
+          <div class="winput">
+            <input type="number" id="winput" min="1" max="20" placeholder="输入 1 – 20 的周数">
+            <button class="btn primary" onclick="onInputJump()">跳转</button>
+          </div>
+        </div>
+        <div class="dialog" id="dlg"></div>
+        <div class="toast" id="t1" style="display:none"></div>
+      </div>
+    </div>
+    <div class="fcap"><b>需求 5</b>：网格左右滑动手势切周（带方向动画和周数浮标）。<br><b>需求 7</b>：点顶部周次 → 跳周面板，网格 / 滑动条 / 输入框三合一。</div>
+  </div>
+
+  <!-- ============ 手机2：返回逻辑 + 导入自动流程 ============ -->
+  <div class="frame">
+    <div class="ftitle"><i>2+4</i> 返回逻辑 + 导入自动跳转</div>
+    <div class="phone"><div class="notch"></div>
+      <div class="screen light" id="s2">
+        <div class="statusbar"><span>9:41</span><span class="r">📶 🔋</span></div>
+
+        <!-- 页：主页 -->
+        <div class="page active" id="p2home">
+          <div class="apphead">
+            <div class="sem">2026-2027学年第1学期</div>
+            <div class="wk">
+              <div><h2>第 6 周</h2><div class="dt">10/12 – 10/18</div></div>
+              <div class="wknav"><button class="iconbtn" onclick="go2('settings',1)">⚙</button></div>
+            </div>
+          </div>
+          <div class="gridwrap"><div class="grid" id="g2"></div></div>
+          <div class="gesturebar"><i></i></div>
+        </div>
+
+        <!-- 页：设置（二级） -->
+        <div class="page" id="p2settings">
+          <div class="subhead">
+            <button class="iconbtn" onclick="go2('home',-1)">←</button>
+            <h2>设置</h2>
+          </div>
+          <div class="setgroup">
+            <div class="setrow" onclick="toast('t2','学期设置（已有功能，不重复演示）')">
+              <div class="ic" style="background:rgba(76,111,255,.12);color:#4C6FFF">📅</div>
+              <div class="tx"><div class="t1">学期设置</div><div class="t2">第一周起始日 · 总周数</div></div><div class="arw">›</div>
+            </div>
+            <div class="setrow" onclick="toast('t2','每节课时间（已有功能）')">
+              <div class="ic" style="background:rgba(43,201,122,.14);color:#18A05E">🕐</div>
+              <div class="tx"><div class="t1">每节课时间</div><div class="t2">12 节已配置</div></div><div class="arw">›</div>
+            </div>
+          </div>
+          <div class="setgroup">
+            <div class="setrow" onclick="openFilePicker()">
+              <div class="ic" style="background:rgba(165,107,255,.13);color:#A56BFF">📄</div>
+              <div class="tx"><div class="t1">导入课表文件</div><div class="t2">HTML / MHTML / 备份文件</div></div><div class="arw">›</div>
+            </div>
+            <div class="setrow" onclick="toast('t2','从教务网站导入（原型见第 3 台）')">
+              <div class="ic" style="background:rgba(255,159,67,.15);color:#E8890C">🌐</div>
+              <div class="tx"><div class="t1">从教务网站导入</div><div class="t2">内置浏览器 · 自动识别</div></div><div class="arw">›</div>
+            </div>
+          </div>
+          <div style="margin:18px 20px 0;display:flex;gap:10px;align-items:center;background:var(--today);border:1px dashed var(--accent);border-radius:14px;padding:12px 14px">
+            <span style="font-size:17px">🔙</span>
+            <div style="font-size:11.5px;color:var(--text2);line-height:1.55">
+              在这一页按<b style="color:var(--accent)">系统返回键</b>，将回到「课表」主页而不是退出应用。<br>
+              <button class="btn ghost" style="margin-top:8px;padding:7px 14px;font-size:12px" onclick="go2('home',-1)">模拟按返回键</button>
+            </div>
+          </div>
+          <div class="gesturebar"><i></i></div>
+        </div>
+
+        <!-- 页：文件选择器（模拟 SAF） -->
+        <div class="page" id="p2picker" style="background:var(--surface)">
+          <div class="subhead">
+            <button class="iconbtn" onclick="go2('settings',-1)">✕</button>
+            <h2 style="font-size:16px">选择文件</h2>
+          </div>
+          <div style="padding:0 18px 8px;font-size:11px;color:var(--text3)">最近 · Download</div>
+          <div>
+            <div class="fp-item" onclick="pickFile(this)">
+              <div class="fic">📄</div>
+              <div><div class="fn">个人课表查询.html</div><div class="fm">1.7 MB · 今天 14:45</div></div>
+            </div>
+            <div class="fp-item" onclick="pickFile(this)">
+              <div class="fic">📄</div>
+              <div><div class="fn">个人课表查询.mhtml</div><div class="fm">1.4 MB · 今天 14:45</div></div>
+            </div>
+            <div class="fp-item" onclick="toast('t2','其他文件类型不演示')">
+              <div class="fic">🖼</div>
+              <div><div class="fn">背景图.png</div><div class="fm">2.1 MB</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dialog" id="d2"></div>
+        <div class="toast" id="t2" style="display:none"></div>
+      </div>
+    </div>
+    <div class="fcap"><b>需求 2</b>：二级页按系统返回 → 回「课表」主页（层级返回，不再退到桌面）。<br><b>需求 4</b>：选完文件<b>自动跳回主页</b>并弹出导入预览，不需要手动返回。</div>
+  </div>
+
+  <!-- ============ 手机3：内置浏览器自动识别 ============ -->
+  <div class="frame">
+    <div class="ftitle"><i>1</i> 内置浏览器 · 自动识别课表</div>
+    <div class="phone"><div class="notch"></div>
+      <div class="screen light" id="s3">
+        <div class="statusbar"><span>9:41</span><span class="r">📶 🔋</span></div>
+        <div class="browserbar">
+          <button class="iconbtn" onclick="resetB3()">←</button>
+          <div class="urlbox">172.16.46.67:1000/jwglxt/kbcx/xskbcx_cxXskbcxIndex</div>
+          <button class="iconbtn" onclick="toast('t3','菜单（原型略）')">⋮</button>
+        </div>
+        <div class="webpage" id="web3"></div>
+        <button class="detect-pill" id="pill3" onclick="pillClick()">解析此页</button>
+
+        <!-- 解析后跳转：全屏滑入主页 -->
+        <div class="page" id="p3home" style="z-index:75">
+          <div class="apphead">
+            <div class="sem">2026-2027学年第1学期</div>
+            <div class="wk">
+              <div><h2>第 6 周</h2><div class="dt">10/12 – 10/18</div></div>
+              <div class="wknav"><button class="iconbtn" onclick="resetB3()">↺ 重新演示</button></div>
+            </div>
+          </div>
+          <div class="gridwrap"><div class="grid" id="g3"></div></div>
+        </div>
+
+        <div class="dialog" id="d3"></div>
+        <div class="toast" id="t3" style="display:none"></div>
+      </div>
+    </div>
+    <div class="fcap"><b>需求 1</b>：页面加载完<b>自动探测</b>课表表格 → 悬浮按钮变绿「发现课表 · 点击导入」→ 点一下直接解析并跳转导入预览，无需手动找按钮。</div>
+  </div>
+
+  <!-- ============ 手机4：已添加课程管理 ============ -->
+  <div class="frame">
+    <div class="ftitle"><i>6</i> 已添加课程 · 统一管理</div>
+    <div class="phone"><div class="notch"></div>
+      <div class="screen light" id="s4">
+        <div class="statusbar"><span>9:41</span><span class="r">📶 🔋</span></div>
+        <div class="subhead">
+          <button class="iconbtn" onclick="toast('t4','返回课表主页')">←</button>
+          <h2>已添加课程</h2>
+          <div style="margin-left:auto;font-size:11px;color:var(--text3)" id="c4count"></div>
+        </div>
+        <div style="margin:0 20px 10px;font-size:11.5px;color:var(--text2);background:var(--today);border:1px solid var(--line);border-radius:12px;padding:9px 13px;line-height:1.5">
+          相同名称的课自动归为一组。点开一组 → 勾选要改的分节 → 一次改全部。
+        </div>
+        <div class="clist" id="clist4"></div>
+
+        <!-- 课程详情面板 -->
+        <div class="mask" id="mask4" onclick="closeDetail4()"></div>
+        <div class="sheet" id="sheet4" style="max-height:82%;overflow-y:auto">
+          <div class="grabber"></div>
+          <h3 id="d4name">课程</h3>
+          <div class="sub" id="d4sub"></div>
+          <div class="sectlabel">分节 · 点行勾选</div>
+          <div id="secList4"></div>
+          <div class="toolrow">
+            <button class="btn ghost" onclick="dlgRename4()">✏️ 改名</button>
+            <button class="btn ghost" onclick="dlgColor4()">🎨 换色</button>
+            <button class="btn ghost" onclick="dlgTime4()">🕐 改时间</button>
+            <button class="btn danger" onclick="deleteSel4()">🗑 删除所选</button>
+          </div>
+        </div>
+        <div class="dialog" id="d4"></div>
+        <div class="toast" id="t4" style="display:none"></div>
+      </div>
+    </div>
+    <div class="fcap"><b>需求 6</b>：按课程名聚合 → 勾选分节后<b>批量删除</b> / <b>统一改名</b> / <b>统一换色</b> / <b>统一改时间（含周次/节次/教室）</b>，改动实时生效，可全选也可只改部分节。</div>
+  </div>
+
+  <!-- ============ 手机5：分享与文件关联 ============ -->
+  <div class="frame">
+    <div class="ftitle"><i>3</i> 分享菜单 & 文件关联</div>
+    <div class="phone"><div class="notch"></div>
+      <div class="screen light" id="s5">
+        <div class="statusbar"><span>9:41</span><span class="r">📶 🔋</span></div>
+        <div class="wxbg">
+          <div class="wxbar">同学 · 課表</div>
+          <div class="wxchat">
+            <div class="wxmsg">
+              <div class="wxava">课</div>
+              <div class="wxfile">
+                <div class="fi">
+                  <div class="fico">HTML</div>
+                  <div><div class="fn">个人课表查询.html</div><div class="fm">1.7MB</div></div>
+                </div>
+                <div class="openbar" onclick="openShareSheet()"><span>用其他应用打开</span><span>›</span></div>
+              </div>
+            </div>
+            <div class="wxmsg">
+              <div class="wxava" style="background:linear-gradient(135deg,#c88f5f,#e8b98a)">我</div>
+              <div style="background:#fff;border-radius:4px;padding:10px 12px;font-size:12px;color:#191919;max-width:210px">我用 Obsession 也能直接打开你发的这个文件</div>
+            </div>
+          </div>
+          <div class="sharebar"><div><b>💬</b>聊天</div><div><b>➕</b>收藏</div><div><b>📂</b>文件</div></div>
+        </div>
+
+        <!-- 系统分享面板 -->
+        <div class="mask" id="mask5" onclick="closeShareSheet()"></div>
+        <div class="sheet" id="sheet5">
+          <div class="grabber"></div>
+          <h3 style="font-size:14px">分享到</h3>
+          <div class="approw">
+            <div class="appic"><div class="aico" style="background:#07C160">微</div><div class="an">微信好友</div></div>
+            <div class="appic"><div class="aico" style="background:#3E7EEF">QQ</div><div class="an">QQ</div></div>
+            <div class="appic"><div class="aico" style="background:#8A93A5">备</div><div class="an">备忘录</div></div>
+            <div class="appic hl" onclick="sharedToObsession()">
+              <div class="aico" style="background:linear-gradient(135deg,#6B8AFF,#A56BFF)">O</div>
+              <div class="an">导入课表</div>
+            </div>
+          </div>
+          <div style="font-size:10.5px;color:var(--text3);text-align:center;padding-bottom:4px">
+            注册 <b style="color:var(--accent)">text/html + .html/.htm</b> 后，微信/QQ 分享、MT 管理器「打开方式」都能看到 Obsession
+          </div>
+        </div>
+
+        <div class="page" id="p5home" style="z-index:75">
+          <div class="apphead">
+            <div class="sem">2026-2027学年第1学期</div>
+            <div class="wk"><div><h2>第 6 周</h2><div class="dt">10/12 – 10/18</div></div>
+            <div class="wknav"><button class="iconbtn" onclick="location.reload()">↺ 重新演示</button></div></div>
+          </div>
+          <div class="gridwrap"><div class="grid" id="g5"></div></div>
+        </div>
+        <div class="dialog" id="d5"></div>
+        <div class="toast" id="t5" style="display:none"></div>
+      </div>
+    </div>
+    <div class="fcap"><b>需求 3</b>：微信「用其他应用打开」→ 分享面板出现 Obsession；<br>MT 管理器等文件管理器的「打开方式」同理（同一套 intent-filter）。</div>
+  </div>
+
+</div>
+
+<script>
+/* ============================================================
+   通用
+============================================================ */
+function setTheme(mode, btn){
+  document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.screen').forEach(s=>{
+    s.classList.remove('light','dark'); s.classList.add(mode);
+  });
+}
+function toast(id, text){
+  const t = document.getElementById(id);
+  t.textContent = text; t.style.display='block';
+  t.style.animation='none'; void t.offsetWidth; t.style.animation='';
+  clearTimeout(t._tm); t._tm = setTimeout(()=>t.style.display='none', 2200);
+}
+function openDialog(id, html){
+  const d = document.getElementById(id);
+  d.innerHTML = '<div class="card">'+html+'</div>';
+  d.classList.add('show');
+}
+function closeDialog(id){ document.getElementById(id).classList.remove('show'); }
+
+const DOW = ['一','二','三','四','五','六','日'];
+const DAY_FULL = ['周一','周二','周三','周四','周五','周六','周日'];
+
+/* 示例课程（周次有差异，切周才有意义） */
+const COURSES = [
+  {name:'高等数学',  h:210, day:1, n1:1, n2:2,  w:[1,16], room:'A栋101', teacher:'张伟'},
+  {name:'大学英语',  h:330, day:1, n1:3, n2:4,  w:[1,16], room:'B栋203', teacher:'Lisa'},
+  {name:'数据结构',  h:265, day:2, n1:1, n2:2,  w:[1,8],  room:'C栋305', teacher:'李强', odd:true},
+  {name:'操作系统',  h:25,  day:3, n1:3, n2:4,  w:[9,16], room:'A栋204', teacher:'王芳'},
+  {name:'大学物理',  h:190, day:3, n1:6, n2:7,  w:[5,12], room:'物理楼B305', teacher:'赵敏'},
+  {name:'线性代数',  h:45,  day:5, n1:1, n2:2,  w:[1,16], room:'A栋310', teacher:'孙涛'},
+  {name:'体育',      h:155, day:4, n1:8, n2:9,  w:[1,16], room:'田径场', teacher:'刘强'},
+];
+
+function weekActive(c, wk){
+  if (wk < c.w[0] || wk > c.w[1]) return false;
+  if (c.odd && wk % 2 === 0) return false;
+  return true;
+}
+function buildGrid(elId, wk){
+  const g = document.getElementById(elId);
+  g.innerHTML = '';
+  const place = (el, row, col) => { el.style.gridRow = String(row); el.style.gridColumn = String(col); };
+  // 表头行
+  const corner = document.createElement('div');
+  corner.className = 'gcell'; place(corner, 1, 1); g.appendChild(corner);
+  for(let d=0; d<7; d++){
+    const dow = document.createElement('div');
+    dow.className = 'dow gcell' + (d===0?' today':'');
+    dow.innerHTML = '<div class="d">周'+DOW[d]+'</div><div class="dd">'+(8+d)+'/12</div>';
+    place(dow, 1, d+2); g.appendChild(dow);
+  }
+  // 节次列 + 背景格
+  for(let n=1; n<=10; n++){
+    const tc = document.createElement('div');
+    tc.className = 'timecol gcell';
+    tc.innerHTML = '<div class="n">'+n+'</div>';
+    place(tc, n+1, 1); g.appendChild(tc);
+    for(let d=1; d<=7; d++){
+      const c = document.createElement('div');
+      c.className = 'gcell';
+      place(c, n+1, d+1);
+      g.appendChild(c);
+    }
+  }
+  // 课程块：直接作为网格子项跨行摆放（盖在背景格上）
+  COURSES.filter(x=>weekActive(x, wk)).forEach((x, i)=>{
+    const b = document.createElement('div');
+    b.className = 'course';
+    b.style.setProperty('--h', x.h);
+    b.style.gridRowStart = String(x.n1+1);
+    b.style.gridRowEnd = String(x.n2+2);
+    b.style.gridColumn = String(x.day+1);
+    b.style.animationDelay = (i*40)+'ms';
+    b.style.zIndex = 10;
+    b.innerHTML = '<p>'+x.name+'</p><span>'+x.room+'</span>';
+    b.onclick = e => { e.stopPropagation(); toast(g.dataset.toast||'t1', x.name+' · '+DAY_FULL[x.day-1]+' '+x.n1+'-'+x.n2+'节 · '+x.room); };
+    g.appendChild(b);
+  });
+}
+function cell(cls, extra){ const d=document.createElement('div'); d.className=(extra||'')+(cls?' '+cls:''); return d; }
+
+/* ============================================================
+   手机1：滑动切周 + 跳周面板
+============================================================ */
+const TOTAL_W = 20;
+let wk1 = 6;
+const TERM_MON = new Date(2026, 8, 7); // 9/7 周一 = 第1周
+
+function fmtRange(wk){
+  const a = new Date(TERM_MON); a.setDate(a.getDate() + (wk-1)*7);
+  const b = new Date(a); b.setDate(b.getDate()+6);
+  const f = d => String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0');
+  return f(a)+' – '+f(b);
+}
+function renderWeek1(dir){
+  document.getElementById('w1label').textContent = '第 '+wk1+' 周';
+  document.getElementById('w1date').textContent = fmtRange(wk1)+' · 点击跳转任意周';
+  buildGrid('g1', wk1);
+  if (dir){
+    const g = document.getElementById('g1');
+    g.classList.remove('anim-next','anim-prev'); void g.offsetWidth;
+    g.classList.add(dir>0?'anim-next':'anim-prev');
+  }
+  const badge = document.getElementById('w1badge');
+  badge.textContent = '第 '+wk1+' 周';
+  badge.classList.add('show');
+  clearTimeout(badge._tm); badge._tm = setTimeout(()=>badge.classList.remove('show'), 900);
+}
+function stepWeek(d){
+  const n = wk1 + d;
+  if (n<1 || n>TOTAL_W){ toast('t1','已经是第 '+(d>0?'最后':'第一')+' 周了'); return; }
+  wk1 = n; renderWeek1(d);
+}
+
+/* 手势：pointer events，水平位移 > 60px 且明显大于垂直才切周 */
+(function(){
+  const wrap = document.getElementById('g1wrap');
+  let sx=0, sy=0, dragging=false, done=false;
+  wrap.addEventListener('pointerdown', e=>{ sx=e.clientX; sy=e.clientY; dragging=true; done=false; });
+  wrap.addEventListener('pointermove', e=>{
+    if(!dragging || done) return;
+    const dx = e.clientX-sx, dy = e.clientY-sy;
+    if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)*1.6){
+      done = true;
+      stepWeek(dx < 0 ? 1 : -1); // 左滑 = 下一周
+    }
+  });
+  ['pointerup','pointercancel','pointerleave'].forEach(ev=>
+    wrap.addEventListener(ev, ()=>{ dragging=false; }));
+})();
+
+/* 跳周面板 */
+function openWeekSheet(){
+  document.getElementById('wmask').classList.add('show');
+  const sh = document.getElementById('wsheet');
+  sh.classList.add('show');
+  buildWeekGrid();
+  document.getElementById('wslider').value = wk1;
+  document.getElementById('wsliderval').textContent = '第 '+wk1+' 周';
+  document.getElementById('winput').value = '';
+}
+function closeWeekSheet(){
+  document.getElementById('wmask').classList.remove('show');
+  document.getElementById('wsheet').classList.remove('show');
+}
+function buildWeekGrid(){
+  const gEl = document.getElementById('wgrid');
+  gEl.innerHTML = '';
+  for(let i=1;i<=TOTAL_W;i++){
+    const b = document.createElement('button');
+    b.textContent = i;
+    if (i===wk1) b.classList.add('cur');
+    if (i>wk1) b.classList.add('future');
+    b.onclick = ()=>{ jumpTo(i); };
+    gEl.appendChild(b);
+  }
+}
+function jumpTo(w){
+  if (!(w>=1 && w<=TOTAL_W)){ toast('t1','周数要在 1 – '+TOTAL_W+' 之间'); return; }
+  const d = w > wk1 ? 1 : -1;
+  wk1 = w; renderWeek1(d);
+  buildWeekGrid();
+  document.getElementById('wslider').value = w;
+  document.getElementById('wsliderval').textContent = '第 '+w+' 周';
+  toast('t1','已跳转到第 '+w+' 周');
+  setTimeout(closeWeekSheet, 350);
+}
+function onSlider(v){ jumpTo(+v); }
+function onInputJump(){
+  const v = +document.getElementById('winput').value;
+  if (!v){ toast('t1','先输入周数'); return; }
+  jumpTo(v);
+}
+
+/* ============================================================
+   手机2：返回逻辑 + 导入自动流程
+============================================================ */
+function go2(target, dir){
+  document.querySelectorAll('#s2 .page').forEach(p=>p.classList.remove('active','anim-fwd','anim-back'));
+  const el = document.getElementById('p2'+target);
+  el.classList.add('active', dir>0?'anim-fwd':'anim-back');
+}
+function openFilePicker(){ go2('picker', 1); }
+function pickFile(el){
+  el.style.background = 'var(--today)';
+  setTimeout(()=>{
+    // 自动跳回主页 + 弹预览 —— 不需要用户手动返回
+    go2('home', -1);
+    setTimeout(()=>showImportPreview('d2','t2','zhengfang_list.html','正方教务（新版 · 列表模式）', ()=>toast('t2','已替换导入 22 门课程')), 380);
+  }, 350);
+}
+function showImportPreview(did, tid, fname, source, onOk){
+  const items = COURSES.slice(0,6).map((c,i)=>
+    '<div class="pitem" style="animation-delay:'+(i*50)+'ms"><div class="dot" style="background:hsl('+c.h+' 68% 53%)"></div>'+
+    '<div><div class="nm">'+c.name+'</div><div class="mt">'+DAY_FULL[c.day-1]+' '+c.n1+'-'+c.n2+'节 · 1-'+c.w[1]+'周'+(c.odd?'(单)':'')+' · '+c.room+'</div></div></div>'
+  ).join('');
+  openDialog(did,
+    '<h3 style="font-size:17px;font-weight:750">是否导入课表？</h3>'+
+    '<div class="psrc"><div class="ic">✓</div><div><div class="t1">'+source+'</div><div class="t2">来自 '+fname+' · 共识别 22 门课程，显示前 6 门</div></div></div>'+
+    '<div class="plist">'+items+'</div>'+
+    '<div class="btnrow"><button class="btn ghost" onclick="closeDialog(\''+did+'\')">取消</button>'+
+    '<button class="btn primary" id="ok_'+did+'">替换导入</button></div>');
+  document.getElementById('ok_'+did).onclick = ()=>{ closeDialog(did); onOk(); };
+}
+
+/* ============================================================
+   手机3：内置浏览器自动识别
+============================================================ */
+function renderWeb3(phase){
+  const w = document.getElementById('web3');
+  if (phase === 'loading'){
+    w.innerHTML = '<h4>学生课表查询</h4><div class="zfname">山西工学院 · 正方教务系统</div>'+
+      [1,2,3,4,5].map(i=>'<div style="height:34px;border-radius:8px;margin-bottom:9px;background:linear-gradient(90deg,#eef0f5 25%,#f7f8fa 50%,#eef0f5 75%);background-size:600px 100%;animation:shimmer 1.1s infinite"></div>').join('');
+  } else {
+    let rows = '';
+    COURSES.slice(0,5).forEach(c=>{
+      rows += '<tr><td class="hd">'+c.name+'</td><td>'+DAY_FULL[c.day-1]+'</td><td>'+c.n1+'-'+c.n2+'节</td><td>1-'+c.w[1]+'周'+(c.odd?'(单)':'')+'</td><td>'+c.room+'</td></tr>';
+    });
+    w.innerHTML = '<h4>学生课表查询</h4><div class="zfname">山西工学院 · 正方教务系统 jwglxt</div>'+
+      '<table class="kbcx-table"><tr><td class="hd">课程</td><td class="hd">星期</td><td class="hd">节次</td><td class="hd">周次</td><td class="hd">地点</td></tr>'+rows+'</table>'+
+      '<div style="margin-top:10px;font-size:10.5px;color:#999">↓ 页面下方还有 17 门课（原型略）</div>';
+  }
+}
+function resetB3(){
+  document.getElementById('p3home').classList.remove('active');
+  const pill = document.getElementById('pill3');
+  pill.className='detect-pill'; pill.textContent='解析此页'; pill.disabled=false;
+  renderWeb3('loading');
+  toast('t3','页面加载中…');
+  setTimeout(()=>{
+    renderWeb3('loaded');
+    pill.classList.add('hit');
+    pill.innerHTML='✓ 发现课表 · 点击导入';
+    toast('t3','已自动识别本页课表（探测到 kblist_table 特征）');
+  }, 1600);
+}
+function pillClick(){
+  const pill = document.getElementById('pill3');
+  if (!pill.classList.contains('hit')){ toast('t3','等页面加载完，识别是自动的'); return; }
+  pill.classList.remove('hit'); pill.classList.add('busy');
+  pill.innerHTML = '<span class="sp"></span> 解析中…';
+  setTimeout(()=>{
+    document.getElementById('p3home').classList.add('active','anim-fwd');
+    buildGrid('g3', 6); document.getElementById('g3').dataset.toast='t3';
+    setTimeout(()=>showImportPreview('d3','t3','内置浏览器 · 当前页面','正方教务（新版 · 列表模式）',
+      ()=>toast('t3','已导入 22 门课程')), 450);
+  }, 1000);
+}
+resetB3();
+
+/* ============================================================
+   手机4：已添加课程管理
+============================================================ */
+let catalog4 = [
+  {name:'高等数学', h:210, secs:[
+    {day:1,n1:1,n2:2,w:'1-16',room:'A栋101',t:'张伟'},
+    {day:3,n1:1,n2:2,w:'1-16',room:'A栋101',t:'张伟'}]},
+  {name:'大学英语', h:330, secs:[
+    {day:1,n1:3,n2:4,w:'1-16',room:'B栋203',t:'Lisa'},
+    {day:3,n1:3,n2:4,w:'1-16',room:'B栋203',t:'Lisa'},
+    {day:5,n1:3,n2:4,w:'1-16',room:'B栋205',t:'Lisa'}]},
+  {name:'数据结构', h:265, secs:[
+    {day:2,n1:1,n2:2,w:'1-8(单)',room:'C栋305',t:'李强'},
+    {day:4,n1:1,n2:2,w:'1-8(单)',room:'C栋305',t:'李强'}]},
+  {name:'大学物理', h:190, secs:[
+    {day:3,n1:6,n2:7,w:'5-12',room:'物理楼B305',t:'赵敏'}]},
+];
+let curCourse4 = -1, sel4 = new Set();
+const HUES = [210,265,155,25,330,45,190,0];
+
+function renderList4(){
+  const el = document.getElementById('clist4');
+  el.innerHTML = '';
+  const total = catalog4.reduce((s,c)=>s+c.secs.length,0);
+  document.getElementById('c4count').textContent = catalog4.length+' 门课 · '+total+' 节';
+  catalog4.forEach((c,i)=>{
+    const days = [...new Set(c.secs.map(s=>s.day))].map(d=>DAY_FULL[d-1]).join(' ');
+    const row = document.createElement('div');
+    row.className='crow'; row.style.animationDelay=(i*40)+'ms';
+    row.innerHTML = '<div class="cdot" style="background:hsl('+c.h+' 68% 53%)"></div>'+
+      '<div class="cx"><div class="cn">'+c.name+'</div><div class="cm">'+days+' · '+c.secs[0].room+'</div></div>'+
+      '<div class="cnt">'+c.secs.length+' 节</div>';
+    row.onclick = ()=>openDetail4(i);
+    el.appendChild(row);
+  });
+}
+function secLabel(s){ return DAY_FULL[s.day-1]+' '+s.n1+'-'+s.n2+'节'; }
+function secMeta(s){ return s.w+'周 · '+s.room+' · '+s.t; }
+function openDetail4(i){
+  curCourse4 = i; sel4 = new Set();
+  document.getElementById('mask4').classList.add('show');
+  document.getElementById('sheet4').classList.add('show');
+  renderDetail4();
+}
+function closeDetail4(){
+  document.getElementById('mask4').classList.remove('show');
+  document.getElementById('sheet4').classList.remove('show');
+  renderList4();
+}
+function renderDetail4(){
+  const c = catalog4[curCourse4]; if(!c) return;
+  document.getElementById('d4name').textContent = c.name;
+  document.getElementById('d4sub').textContent = '共 '+c.secs.length+' 节 · 已选 '+sel4.size+' 节（不选 = 操作应用到全部）';
+  const el = document.getElementById('secList4');
+  el.innerHTML = '';
+  c.secs.forEach((s,j)=>{
+    const row = document.createElement('div');
+    row.className = 'secrow'+(sel4.has(j)?' on':'');
+    row.innerHTML = '<div class="cbx">'+(sel4.has(j)?'✓':'')+'</div>'+
+      '<div><div class="st">'+secLabel(s)+'</div><div class="sm">'+secMeta(s)+'</div></div>';
+    row.onclick = ()=>{ sel4.has(j)?sel4.delete(j):sel4.add(j); renderDetail4(); };
+    el.appendChild(row);
+  });
+}
+function targets4(){ const c=catalog4[curCourse4]; return sel4.size? [...sel4].map(i=>c.secs[i]) : c.secs; }
+
+function dlgRename4(){
+  const c = catalog4[curCourse4];
+  openDialog('d4','<h3 style="font-size:16px;font-weight:700">统一改名</h3>'+
+    '<div class="sub" style="margin-top:3px">应用到 '+(sel4.size? sel4.size+' 个所选分节':'全部 '+c.secs.length+' 节')+'</div>'+
+    '<div class="fld"><label>新课程名</label><input id="r4in" value="'+c.name+'"></div>'+
+    '<div class="btnrow"><button class="btn ghost" onclick="closeDialog(\'d4\')">取消</button>'+
+    '<button class="btn primary" id="r4ok">应用</button></div>');
+  document.getElementById('r4ok').onclick = ()=>{
+    const v = document.getElementById('r4in').value.trim();
+    if(!v){ toast('t4','名字不能为空'); return; }
+    c.name = v; closeDialog('d4'); renderDetail4(); toast('t4','已改名，所有分节同步更新');
+  };
+}
+function dlgColor4(){
+  openDialog('d4','<h3 style="font-size:16px;font-weight:700">统一换色</h3>'+
+    '<div class="sub" style="margin-top:3px">选一个色相，应用后所有分节同步</div>'+
+    '<div class="swatches">'+HUES.map((h,i)=>
+      '<div class="swatch'+(h===catalog4[curCourse4].h?' sel':'')+'" style="background:hsl('+h+' 68% 53%)" onclick="pickColor4('+h+',this)"></div>').join('')+'</div>'+
+    '<div class="btnrow"><button class="btn ghost" onclick="closeDialog(\'d4\')">取消</button></div>');
+}
+function pickColor4(h, el){
+  catalog4[curCourse4].h = h;
+  document.querySelectorAll('#d4 .swatch').forEach(s=>s.classList.remove('sel'));
+  el.classList.add('sel');
+  renderDetail4(); toast('t4','已换色（自动保存）');
+}
+function dlgTime4(){
+  const s = targets4()[0];
+  openDialog('d4','<h3 style="font-size:16px;font-weight:700">统一改时间</h3>'+
+    '<div class="sub" style="margin-top:3px">应用到 '+(sel4.size? sel4.size+' 个所选分节':'全部 '+catalog4[curCourse4].secs.length+' 节')+' · 下面预填的是所选第一节的当前值</div>'+
+    '<div class="fld"><label>星期</label><select id="tm4day">'+DAY_FULL.map((d,i)=>'<option value="'+(i+1)+'"'+(s.day===i+1?' selected':'')+'>'+d+'</option>').join('')+'</select></div>'+
+    '<div class="fld"><label>节次</label><div class="r2"><select id="tm4n1">'+[1,3,5,6,8].map(n=>'<option'+(s.n1===n?' selected':'')+'>'+n+'</option>').join('')+'</select>'+
+    '<select id="tm4n2">'+[2,4,6,7,9].map(n=>'<option'+(s.n2===n?' selected':'')+'>'+n+'</option>').join('')+'</select></div></div>'+
+    '<div class="fld"><label>周次</label><input id="tm4w" value="'+s.w+'"></div>'+
+    '<div class="fld"><label>教室 / 教师</label><div class="r2"><input id="tm4r" value="'+s.room+'"><input id="tm4t" value="'+s.t+'"></div></div>'+
+    '<div class="btnrow"><button class="btn ghost" onclick="closeDialog(\'d4\')">取消</button>'+
+    '<button class="btn primary" id="tm4ok">应用到所选</button></div>');
+  document.getElementById('tm4ok').onclick = ()=>{
+    const day=+document.getElementById('tm4day').value,
+          n1=+document.getElementById('tm4n1').value, n2=+document.getElementById('tm4n2').value,
+          w=document.getElementById('tm4w').value.trim(),
+          r=document.getElementById('tm4r').value.trim(), t=document.getElementById('tm4t').value.trim();
+    if(n2<n1){ toast('t4','结束节次要大于开始节次'); return; }
+    targets4().forEach(x=>{ x.day=day; x.n1=n1; x.n2=n2; x.w=w||x.w; x.room=r; x.t=t; });
+    closeDialog('d4'); renderDetail4(); toast('t4','时间已统一修改');
+  };
+}
+function deleteSel4(){
+  const c = catalog4[curCourse4];
+  const n = sel4.size || c.secs.length;
+  openDialog('d4','<h3 style="font-size:16px;font-weight:700;color:#E5484D">删除 '+n+' 节课？</h3>'+
+    '<div class="sub" style="margin-top:4px">'+(sel4.size? '将删除所选 '+n+' 个分节':'将删除「'+c.name+'」的全部 '+n+' 节')+'，此操作在正式版会二次确认。</div>'+
+    '<div class="btnrow"><button class="btn ghost" onclick="closeDialog(\'d4\')">取消</button>'+
+    '<button class="btn danger" id="del4ok">确认删除</button></div>');
+  document.getElementById('del4ok').onclick = ()=>{
+    if (sel4.size){
+      c.secs = c.secs.filter((_,j)=>!sel4.has(j));
+      if (c.secs.length===0) catalog4.splice(curCourse4,1);
+    } else {
+      catalog4.splice(curCourse4,1);
+    }
+    closeDialog('d4'); closeDetail4(); renderList4();
+    toast('t4','已删除，列表已更新');
+  };
+}
+renderList4();
+
+/* ============================================================
+   手机5：分享与文件关联
+============================================================ */
+function openShareSheet(){
+  document.getElementById('mask5').classList.add('show');
+  document.getElementById('sheet5').classList.add('show');
+}
+function closeShareSheet(){
+  document.getElementById('mask5').classList.remove('show');
+  document.getElementById('sheet5').classList.remove('show');
+}
+function sharedToObsession(){
+  closeShareSheet();
+  document.getElementById('p5home').classList.add('active','anim-fwd');
+  buildGrid('g5', 6); document.getElementById('g5').dataset.toast='t5';
+  setTimeout(()=>showImportPreview('d5','t5','微信分享 · 个人课表查询.html','正方教务（新版 · 列表模式）',
+    ()=>toast('t5','已导入 22 门课程')), 450);
+}
+
+/* ============================================================
+   初始化
+============================================================ */
+buildGrid('g1', wk1); document.getElementById('g1').dataset.toast='t1'; renderWeek1();
+buildGrid('g2', 6);   document.getElementById('g2').dataset.toast='t2';
+</script>
+</body>
+</html>

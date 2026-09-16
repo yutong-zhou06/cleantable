@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>v0.5.0 小组件样式微调 · 基于当前真实样式</title>
+<style>
+  :root{
+    --bg:#f2f4f8; --card:#ffffff; --line:#e3e6ee; --text:#20242e;
+    --dim:#7a8294; --accent:#4f6bff;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif}
+  body{background:var(--bg);color:var(--text);padding:28px 20px 60px}
+  .wrap{max-width:1180px;margin:0 auto}
+  h1{font-size:21px;margin-bottom:6px}
+  .sub{font-size:13px;color:var(--dim);margin-bottom:22px;line-height:1.7}
+  .sub b{color:var(--text)}
+  .grid{display:grid;grid-template-columns:330px 1fr;gap:20px;align-items:start}
+  @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .panel h2{font-size:15px;margin-bottom:14px}
+  .sec{padding:13px 0;border-top:1px solid var(--line)}
+  .sec:first-of-type{border-top:none;padding-top:2px}
+  .sec .lab{font-size:12.5px;font-weight:600;margin-bottom:8px;display:flex;justify-content:space-between}
+  .sec .lab .val{color:var(--dim);font-weight:400;font-size:11.5px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{padding:6px 12px;border-radius:8px;border:1px solid var(--line);font-size:12px;cursor:pointer;background:#fafbfd;user-select:none;transition:.15s}
+  .chip:hover{border-color:var(--accent)}
+  .chip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .swatches{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .sw{width:26px;height:26px;border-radius:8px;cursor:pointer;border:2px solid transparent;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);transition:.15s}
+  .sw.on{border-color:var(--text);transform:scale(1.1)}
+  .sw.auto{background:repeating-linear-gradient(45deg,#e8ebf2 0 4px,#f7f9fc 4px 8px);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--dim);box-shadow:inset 0 0 0 1px var(--line)}
+  input[type=range]{width:100%;accent-color:var(--accent)}
+  .hexrow{display:flex;gap:8px;margin-top:8px}
+  .hexrow input{flex:1;padding:6px 10px;border:1px solid var(--line);border-radius:8px;font-size:12px;font-family:Consolas,monospace}
+  .hexrow button{padding:6px 14px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-size:12px;cursor:pointer}
+  .reset{margin-top:16px;width:100%;padding:9px;border:1px solid var(--line);background:#fafbfd;border-radius:10px;font-size:13px;cursor:pointer;color:var(--dim)}
+  .reset:hover{color:var(--text);border-color:var(--accent)}
+  /* 桌面模拟 */
+  .desk{background:linear-gradient(135deg,#dfe5f3 0%,#cfd8ef 40%,#b8c6ea 100%);border-radius:16px;padding:26px 22px;min-height:560px;position:relative;overflow:hidden}
+  .desk .wall{position:absolute;inset:0;opacity:.5;background:
+    radial-gradient(circle at 75% 20%,#ffe3c9 0,transparent 34%),
+    radial-gradient(circle at 20% 80%,#c9e8ff 0,transparent 40%)}
+  .desk>*{position:relative}
+  .wrow{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+  .wcell{background:transparent}
+  .wcell canvas{display:block;border-radius:14px;box-shadow:0 3px 14px rgba(30,40,80,.18);cursor:pointer}
+  .wname{font-size:11px;color:#5a6478;text-align:center;margin-top:6px;text-shadow:0 1px 2px rgba(255,255,255,.6)}
+  .sysbar{display:flex;justify-content:space-between;font-size:11px;color:#5a6478;margin-bottom:14px}
+  .note{margin-top:18px;background:#eef3ff;border:1px solid #d8e2ff;border-radius:12px;padding:13px 15px;font-size:12.5px;line-height:1.8;color:#3c4660}
+  .note b{color:var(--accent)}
+  .toggle{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim);margin-top:6px}
+  .toggle input{accent-color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>桌面小组件 · 样式微调</h1>
+  <div class="sub">
+    预览画的就是 <b>你现在手机上 v0.4.3 快照组件的真实样式</b>（同一套配色 / 字号 / 间距 / 圆角，默认值 = 当前值）。
+    在现状基础上微调，满意后按此打包。<b>实现方式：仅让现有快照渲染在画图前读一次样式偏好，画图逻辑与「ImageView 显示位图」的管线原样保留，不做结构性改动。</b>
+  </div>
+  <div class="grid">
+    <!-- 控制面板 -->
+    <div class="panel">
+      <h2>样式设置</h2>
+
+      <div class="sec">
+        <div class="lab"><span>组件主题</span><span class="val" id="v-theme">跟随应用</span></div>
+        <div class="chips" id="c-theme">
+          <div class="chip on" data-v="auto">跟随应用</div>
+          <div class="chip" data-v="light">浅色</div>
+          <div class="chip" data-v="dark">深色</div>
+        </div>
+        <div class="toggle"><input type="checkbox" id="sysDark"><label for="sysDark">模拟系统/应用处于深色模式（跟随应用时生效）</label></div>
+      </div>
+
+      <div class="sec">
+        <div class="lab"><span>背景颜色</span><span class="val" id="v-bg">自动（跟随主题）</span></div>
+        <div class="swatches" id="c-bg">
+          <div class="sw auto on" data-v="auto">A</div>
+        </div>
+        <div class="hexrow"><input id="hex-bg" placeholder="#RRGGBB，如 1B1E28" maxlength="7"><button id="btn-bg">应用</button></div>
+      </div>
+
+      <div class="sec">
+        <div class="lab"><span>背景不透明度</span><span class="val" id="v-op">100%（自动背景不适用）</span></div>
+        <input type="range" id="c-op" min="20" max="100" value="100">
+      </div>
+
+      <div class="sec">
+        <div class="lab"><span>强调色（正在上/时间/圆点）</span><span class="val" id="v-ac">自动</span></div>
+        <div class="swatches" id="c-ac">
+          <div class="sw auto on" data-v="auto">A</div>
+        </div>
+        <div class="hexrow"><input id="hex-ac" placeholder="#RRGGBB，如 4F6BFF" maxlength="7"><button id="btn-ac">应用</button></div>
+      </div>
+
+      <div class="sec">
+        <div class="lab"><span>卡片圆角</span><span class="val" id="v-r">当前默认（14 / 10dp）</span></div>
+        <input type="range" id="c-r" min="0" max="24" value="14">
+      </div>
+
+      <button class="reset" id="btn-reset">↺ 恢复当前默认样式</button>
+    </div>
+
+    <!-- 桌面预览 -->
+    <div>
+      <div class="desk">
+        <div class="wall"></div>
+        <div class="sysbar"><span>16:24</span><span>· 桌面预览 ·</span><span>?</span></div>
+        <div class="wrow">
+          <div class="wcell"><canvas id="w-today" width="620" height="340" style="width:310px;height:170px"></canvas><div class="wname">今日课表 4×2（点击放大）</div></div>
+          <div class="wcell"><canvas id="w-next" width="300" height="340" style="width:150px;height:170px"></canvas><div class="wname">下一节课 2×2</div></div>
+        </div>
+        <div class="wrow">
+          <div class="wcell"><canvas id="w-bar" width="620" height="110" style="width:310px;height:55px"></canvas><div class="wname">课表简洁条 4×1（重影已修复）</div></div>
+        </div>
+      </div>
+      <div class="note">
+        <b>实现方式（保守，不动管线）：</b>新增一个样式偏好存储（本地保存，重启保持）；「更新桌面小组件」和自动刷新时，渲染器画图前读取一次偏好并替换对应颜色/圆角参数——其余逻辑（Canvas 画位图 → ImageView 显示 → 一键更新面板）与现在完全一致。<b>选了具体背景色后不随主题切换</b>，文字按背景明暗自动取深/浅色保证可读；不透明度只作用于背景。
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ============ 基准：与 WidgetSnapshotRenderer.kt 完全一致 ============
+const D = 2; // 预览密度（真机按屏幕密度）
+const BASE = {
+  light: { bg:'#FBFCFE', title:'#20242E', dim:'#7A8294', faint:'#A8AFBF', accent:'#4F6BFF',
+           nowBg:'rgba(79,107,255,0.125)', pastBg:'rgba(30,36,50,0.04)', upBg:'rgba(30,36,50,0.05)' },
+  dark:  { bg:'#1B1E28', title:'#F2F4F8', dim:'#8B93A5', faint:'#5B6272', accent:'#6D8BFF',
+           nowBg:'rgba(47,76,200,0.20)', pastBg:'rgba(255,255,255,0.04)', upBg:'rgba(255,255,255,0.08)' }
+};
+const BG_SWATCHES = ['#FBFCFE','#1B1E28','#FFF4E0','#E8F5E9','#E3F0FF','#FDE8EC','#2A2F3E'];
+const AC_SWATCHES = ['#4F6BFF','#6D8BFF','#E05A4E','#E8913A','#3BA776','#9A6BDF','#2FA8C5'];
+
+// ============ 样式状态（默认 = 当前真机表现） ============
+const S = { theme:'auto', bg:'auto', opacity:100, accent:'auto', radius:14 };
+
+// ============ 数据（示例课程，含三种状态） ============
+const snap = {
+  dayLabel:'周三 9月16日',
+  courses: [
+    { name:'高等数学 A(2)', room:'教1-301', start:'08:00', state:'past' },
+    { name:'大学英语 IV',   room:'文2-105', start:'10:00', state:'ongoing' },
+    { name:'数据结构',      room:'教3-502', start:'14:00', state:'up' },
+    { name:'体育（羽毛球）', room:'体育馆',  start:'16:00', state:'up' }
+  ],
+  ongoing: { name:'大学英语 IV', room:'文2-105', start:'10:00' }
+};
+
+// ============ 工具 ============
+const $ = id => document.getElementById(id);
+function lum(hex){
+  const n = parseInt(hex.slice(1),16);
+  return (0.299*(n>>16&255) + 0.587*(n>>8&255) + 0.114*(n&255)) / 255;
+}
+function autoText(bgHex){ return lum(bgHex) > 0.55 ? BASE.light : BASE.dark; }
+function ctxOf(id){ const c = $(id); return c.getContext('2d'); }
+function text(ctx, dp, bold, color){
+  ctx.fillStyle = color;
+  ctx.font = (bold?'600 ':'400 ') + dp*D + 'px "Roboto","Microsoft YaHei",sans-serif';
+  return { size: dp*D, bold };
+}
+function roundRect(ctx,x,y,w,h,r,fill){
+  r = Math.min(r, h/2, w/2);
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+  ctx.fillStyle = fill; ctx.fill();
+}
+function strokeR(ctx,x,y,w,h,r,color){
+  r = Math.min(r, h/2, w/2);
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+  ctx.strokeStyle = color; ctx.lineWidth = 1.2*D; ctx.stroke();
+}
+function centerY(top,rowH,f){ return top + rowH/2 + (f.size - f.size*0.36)/2 + f.size*0.36; }
+function ellipsize(ctx,s,maxPx){
+  if (ctx.measureText(s).width <= maxPx) return s;
+  let t = s;
+  while (t.length > 1 && ctx.measureText(t+'…').width > maxPx) t = t.slice(0,-1);
+  return t+'…';
+}
+
+// ============ 解析有效配色 ============
+function pal(){
+  const dark = S.theme==='dark' || (S.theme==='auto' && $('sysDark').checked);
+  const base = { ...BASE[dark? 'dark':'light'] };
+  let bgAuto = true;
+  if (S.bg !== 'auto'){
+    bgAuto = false;
+    const t = autoText(S.bg);
+    base.bg = S.bg;
+    base.title = t.title; base.dim = t.dim; base.faint = t.faint;
+    // 行底色从文字色派生，保证在任意背景上成立
+    base.pastBg = t === BASE.light ? 'rgba(30,36,50,0.05)' : 'rgba(255,255,255,0.07)';
+    base.upBg   = t === BASE.light ? 'rgba(30,36,50,0.06)' : 'rgba(255,255,255,0.10)';
+    base.nowBg  = hexA(S.accent==='auto' ? base.accent : S.accent, dark?0.20:0.13);
+  } else if (S.opacity < 100){
+    base.bg = hexA(base.bg, S.opacity/100);
+  }
+  if (S.accent !== 'auto') base.accent = S.accent;
+  return { base, dark, bgAuto };
+}
+function hexA(hex,a){
+  const n = parseInt(hex.slice(1),16);
+  return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;
+}
+function radius(){ return S.radius; }
+
+// ============ 三种画法（与 Kotlin 逐行对应） ============
+function drawToday(id){
+  const ctx = ctxOf(id); const w = 620, h = 340;
+  const { base:C, dark } = pal();
+  const r = radius();
+  ctx.clearRect(0,0,w,h);
+  const pad = 7*D;
+  roundRect(ctx,0,0,w,h,r,C.bg);
+
+  const titleF = text(ctx,13,true,C.title);
+  ctx.textAlign='left';
+  ctx.fillText('今天 · '+snap.dayLabel, pad+2*D, pad+titleF.size, w);
+
+  const cntF = text(ctx,9.5,false,C.dim); ctx.textAlign='right';
+  ctx.fillText(snap.courses.length+' 门', w-pad-2*D, pad+titleF.size);
+  ctx.textAlign='left';
+
+  const top = pad+15*D, gap = 2.5*D;
+  const rows = snap.courses;
+  const rowH = ((h-top-pad)-(rows.length-1)*gap)/rows.length;
+
+  rows.forEach((c,i)=>{
+    const y = top+i*(rowH+gap);
+    roundRect(ctx,pad,y,w-2*pad,rowH,Math.min(5*D,r), c.state==='ongoing'?C.nowBg : c.state==='past'?C.pastBg : C.upBg);
+    if (c.state==='ongoing') strokeR(ctx,pad,y,w-2*pad,rowH,Math.min(5*D,r),C.accent);
+
+    const fade = c.state==='past'?0.45:1;
+    const main = c.state==='ongoing'?C.accent:C.title;
+
+    const timeF = text(ctx,10,true,main); ctx.globalAlpha=fade;
+    ctx.fillText(c.start, pad+4*D, centerY(y,rowH,timeF));
+
+    const dot = c.state==='ongoing'?C.accent : c.state==='past'?C.faint:C.dim;
+    ctx.beginPath(); ctx.arc(pad+33*D, y+rowH/2, 2.2*D, 0, 7); ctx.fillStyle=dot; ctx.fill();
+
+    const nameF = text(ctx,10,false,main);
+    const roomF = text(ctx,8.5,false,C.dim); ctx.textAlign='right';
+    const room = c.room;
+    const nameMax = w-2*pad-4*D-(pad+38*D)-(ctx.measureText(room).width+8*D);
+    ctx.textAlign='left';
+    ctx.fillText(ellipsize(ctx,c.name,nameMax), pad+38*D, centerY(y,rowH,nameF));
+    ctx.textAlign='right';
+    ctx.fillText(room, w-pad-4*D, centerY(y,rowH,roomF));
+    ctx.textAlign='left'; ctx.globalAlpha=1;
+  });
+}
+
+function drawNext(id){
+  const ctx = ctxOf(id); const w = 300, h = 340;
+  const { base:C } = pal();
+  ctx.clearRect(0,0,w,h);
+  const pad = 9*D;
+  roundRect(ctx,0,0,w,h,radius(),C.bg);
+  ctx.textAlign='left';
+
+  const t = snap.ongoing;
+  const labelF = text(ctx,8.5,false,C.dim);
+  ctx.fillText('正在上', pad, h*0.20);
+
+  const timeF = text(ctx,19,true,C.accent);
+  ctx.fillText(t.start, pad, h*0.52);
+
+  const nameF = text(ctx,12,true,C.title);
+  ctx.fillText(ellipsize(ctx,t.name,w-2*pad), pad, h*0.74);
+
+  const roomF = text(ctx,8.5,false,C.dim);
+  ctx.fillText(ellipsize(ctx,t.room,w-2*pad), pad, h*0.90);
+}
+
+function drawBar(id){
+  const ctx = ctxOf(id); const w = 620, h = 110;
+  const { base:C } = pal();
+  ctx.clearRect(0,0,w,h);
+  const pad = 8*D;
+  roundRect(ctx,0,0,w,h,radius(),C.bg);
+  ctx.textAlign='left';
+
+  const t = snap.ongoing;
+  const timeF = text(ctx,15,true,C.accent);
+  const timeX = pad+2*D;
+  ctx.fillText(t.start, timeX, centerY(0,h,timeF));
+
+  const nameF = text(ctx,10.5,true,C.title);
+  const nameX = timeX + ctx.measureText(t.start).width + 7*D;
+  const roomF = text(ctx,9,false,C.dim);
+  const room = ' · '+t.room;
+  const nameMax = w-nameX-pad-2*D;
+
+  // 修复后的画法：名字截断 → 教室紧跟其后，各画一次
+  const roomW = ctx.measureText(room).width;
+  const nameFit = (ctx.measureText(t.name).width + roomW <= nameMax) ? nameMax-roomW : nameMax;
+  const drawn = ellipsize(ctx,t.name,nameFit);
+  ctx.fillText(drawn, nameX, centerY(0,h,nameF));
+  ctx.textAlign='left';
+  ctx.save(); ctx.font = roomF.size+'px "Microsoft YaHei",sans-serif'; ctx.fillStyle=C.dim;
+  ctx.fillText(room, nameX + ctx.measureText(drawn).width, centerY(0,h,roomF));
+  ctx.restore();
+}
+
+function renderAll(){
+  drawToday('w-today'); drawNext('w-next'); drawBar('w-bar');
+  $('v-theme').textContent = {auto:'跟随应用',light:'浅色',dark:'深色'}[S.theme];
+  $('v-bg').textContent = S.bg==='auto' ? '自动（跟随主题）' : S.bg.toUpperCase()+' · '+$('v-op')+'%';
+  $('v-ac').textContent = S.accent==='auto' ? '自动' : S.accent.toUpperCase();
+  $('v-op').textContent = S.bg==='auto' ? '100%（自动背景不适用）' : S.opacity+'%';
+  $('v-r').textContent = S.radius+'dp'+(S.radius===14?'（当前默认）':'');
+}
+
+// ============ 交互绑定 ============
+function bindChips(sel,key,cb){
+  $(sel).querySelectorAll('.chip').forEach(el=>{
+    el.onclick = ()=>{ $(sel).querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));
+      el.classList.add('on'); S[key]=el.dataset.v; if(cb)cb(); renderAll(); };
+  });
+}
+function buildSwatches(sel,list,key){
+  const box = $(sel);
+  list.forEach(c=>{
+    const d = document.createElement('div');
+    d.className='sw'; d.style.background=c; d.dataset.v=c; d.title=c;
+    d.onclick = ()=>{ box.querySelectorAll('.sw').forEach(x=>x.classList.remove('on'));
+      d.classList.add('on'); S[key]=c; if(key==='bg')$('c-op').disabled=false; renderAll(); };
+    box.appendChild(d);
+  });
+  box.querySelector('.auto').onclick = ()=>{
+    box.querySelectorAll('.sw').forEach(x=>x.classList.remove('on'));
+    box.querySelector('.auto').classList.add('on');
+    S[key]='auto'; if(key==='bg'){$('c-op').value=100;} renderAll();
+  };
+}
+function applyHex(inputId,key){
+  const v = $(inputId).value.trim();
+  if (!/^#[0-9a-fA-F]{6}$/.test(v)) { $(inputId).style.borderColor='#e05a4e'; setTimeout(()=>$(inputId).style.borderColor='',1200); return; }
+  S[key]=v.toUpperCase();
+  const box = $(key==='bg'?'c-bg':'c-ac');
+  box.querySelectorAll('.sw').forEach(x=>x.classList.remove('on'));
+  renderAll();
+}
+bindChips('c-theme','theme');
+buildSwatches('c-bg',BG_SWATCHES,'bg');
+buildSwatches('c-ac',AC_SWATCHES,'accent');
+$('c-op').oninput = e=>{ S.opacity=+e.target.value; renderAll(); };
+$('c-r').oninput = e=>{ S.radius=+e.target.value; renderAll(); };
+$('btn-bg').onclick = ()=>applyHex('hex-bg','bg');
+$('btn-ac').onclick = ()=>applyHex('hex-ac','accent');
+$('sysDark').onchange = renderAll;
+$('btn-reset').onclick = ()=>{
+  Object.assign(S,{theme:'auto',bg:'auto',opacity:100,accent:'auto',radius:14});
+  $('c-theme').querySelectorAll('.chip').forEach(x=>x.classList.toggle('on',x.dataset.v==='auto'));
+  [['c-bg'],['c-ac']].forEach(([id])=>{ $(id).querySelectorAll('.sw').forEach(x=>x.classList.remove('on')); $(id).querySelector('.auto').classList.add('on'); });
+  $('c-op').value=100; $('c-r').value=14; $('sysDark').checked=false;
+  renderAll();
+};
+// 点击组件放大查看
+document.querySelectorAll('.wcell canvas').forEach(cv=>{
+  cv.onclick = ()=>{
+    const win = window.open('', '_blank');
+    const img = cv.toDataURL('image/png');
+    win.document.write('<title>组件预览</title><body style="margin:0;background:#1c1f2a;display:flex;align-items:center;justify-content:center;height:100vh"><img src="'+img+'" style="max-width:92%;image-rendering:auto;border-radius:16px"></body>');
+    win.document.close();
+  };
+});
+renderAll();
+</script>
+</body>
+</html>

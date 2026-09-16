@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  小组件配色（浅色 / 柔光）。
+  深色版本在 values-night/colors.xml，系统切到深色模式时自动生效。
+  RemoteViews 不支持 Compose 主题，只能用资源限定符这条路。
+-->
+<resources>
+    <color name="widget_bg">#D9FFFFFF</color>
+    <color name="widget_text">#FF171A21</color>
+    <color name="widget_text_dim">#FF5C6472</color>
+    <color name="widget_text_faint">#FFA0A7B4</color>
+    <color name="widget_accent">#FF4C6FFF</color>
+    <color name="widget_row_upcoming">#12000000</color>
+    <color name="widget_row_ongoing_start">#2E4C6FFF</color>
+    <color name="widget_row_ongoing_end">#0A4C6FFF</color>
+</resources>

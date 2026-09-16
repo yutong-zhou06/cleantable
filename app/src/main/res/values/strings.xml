@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Obsession</string>
+
+    <!-- 桌面小组件 -->
+    <string name="widget_today_label">今日课表</string>
+    <string name="widget_today_desc">今天要上的课，已上过的会自动淡化</string>
+    <string name="widget_next_label">下一节课</string>
+    <string name="widget_next_desc">正在上或即将开始的课</string>
+    <string name="widget_bar_label">课表简洁条</string>
+    <string name="widget_bar_desc">一行文字，只显示下一节课</string>
+</resources>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  v0.4.3「静态快照」方案：小组件只显示一张应用内画好的位图。
+  启动器端零拼装（没有动态 addView / 没有 RemoteViews 复杂操作），
+  setImageViewBitmap 是 RemoteViews 最古老稳定的 API —— 这是兼容性最高的形态。
+  位图自带圆角与深浅色配色，透明区域透出桌面壁纸。
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/widget_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:contentDescription="课程表小组件" />
+</FrameLayout>
