@@ -26,6 +26,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -129,6 +131,18 @@ class ScheduleViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             _activeId.collect { id ->
                 if (id > 0) _bgConfig.value = configStore.loadBackground(id)
+            }
+        }
+        // v0.6：启动时把周次定位到「今天在第几周」。此前只有手动切换课表
+        // （switchTimetable）才会定位，冷启动永远停在第 1 周。
+        // 学期起始日还没设置（=0）时不定位，保持第 1 周，避免算出几千周。
+        viewModelScope.launch {
+            val timetable = activeTimetable.filterNotNull().first()
+            val c = timetable.toConfig()
+            _week.value = if (c.firstWeekStart > 0) {
+                c.weekOfDay(System.currentTimeMillis()).coerceIn(1, c.totalWeeks)
+            } else {
+                1
             }
         }
     }

@@ -282,7 +282,7 @@ fun SettingsScreen(
             SectionTitle("关于")
             SectionCard {
                 Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
-                    Text("Obsession v0.5.0", fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                    Text("Obsession v0.6.0", fontSize = 13.sp, fontWeight = FontWeight.Medium)
                     Spacer(Modifier.height(4.dp))
                     Text(
                         "零广告 · 无账号 · 数据只保存在本机。\n内置浏览器导入时需要访问教务网站（唯一联网场景），" +
@@ -313,6 +313,7 @@ fun SettingsScreen(
         TimeSlotEditorDialog(
             initial = timeSlots,
             maxCourseNode = maxNode,
+            timetableId = timetable?.id ?: 0L,
             onDismiss = { timeSlotEditorVisible = false },
             onSave = {
                 viewModel.saveTimeSlots(it)
@@ -504,6 +505,75 @@ private fun WidgetStyleCard() {
                 }
             }
             Spacer(Modifier.height(12.dp))
+
+            // ---- 课程配色模式（v0.6）----
+            Text("课程配色", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(6.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .padding(3.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                listOf(
+                    "按课程区分" to WidgetStylePrefs.COLOR_COURSE,
+                    "统一强调色" to WidgetStylePrefs.COLOR_SINGLE
+                ).forEach { (label, value) ->
+                    val selected = prefs.colorMode == value
+                    Text(
+                        label,
+                        fontSize = 12.5.sp,
+                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                        color = if (selected) MaterialTheme.colorScheme.onPrimary
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(
+                                if (selected) MaterialTheme.colorScheme.primary
+                                else Color.Transparent
+                            )
+                            .clickable { apply { it.copy(colorMode = value) } }
+                            .padding(vertical = 7.dp),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                }
+            }
+            Text(
+                "按课程区分：每门课用课表里的颜色（与课表界面一致）",
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+            Spacer(Modifier.height(12.dp))
+
+            // ---- 字号（v0.6）----
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("整体字号", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(
+                    prefs.fontScale.toString() + "%" + when (prefs.fontScale) {
+                        in 85..94 -> "（小）"
+                        in 95..107 -> "（标准）"
+                        in 108..122 -> "（大）"
+                        else -> "（特大）"
+                    },
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Slider(
+                value = prefs.fontScale.toFloat(),
+                onValueChange = { v -> apply { p -> p.copy(fontScale = v.toInt().coerceIn(85, 135)) } },
+                valueRange = WidgetStylePrefs.MIN_FONT_SCALE.toFloat()..WidgetStylePrefs.MAX_FONT_SCALE.toFloat(),
+                steps = (WidgetStylePrefs.MAX_FONT_SCALE - WidgetStylePrefs.MIN_FONT_SCALE) / 5 - 1
+            )
+            Spacer(Modifier.height(4.dp))
 
             // ---- 背景颜色 ----
             Text("背景颜色", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)

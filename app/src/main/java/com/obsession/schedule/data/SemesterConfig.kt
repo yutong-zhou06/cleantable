@@ -122,12 +122,44 @@ class ConfigStore(context: Context) {
             .apply()
     }
 
+    // ------------------------------------------------------------------
+    // v0.6：作息编辑偏好（按课表隔离）
+    //
+    // 「只填开始时间」模式与每节时长都是「一张课表的作息属性」，但只有两个标量，
+    // 不值得为它们动 Room schema（要加字段 + 迁移），沿用背景配置同一套前缀键存储。
+    // ------------------------------------------------------------------
+
+    fun slotAutoMode(timetableId: Long): Boolean =
+        prefs.getBoolean(slotKey(timetableId, KEY_SLOT_AUTO), false)
+
+    fun setSlotAutoMode(timetableId: Long, enabled: Boolean) {
+        prefs.edit().putBoolean(slotKey(timetableId, KEY_SLOT_AUTO), enabled).apply()
+    }
+
+    fun slotLessonMinutes(timetableId: Long): Int =
+        prefs.getInt(slotKey(timetableId, KEY_SLOT_LESSON), TimeSlotEntity.DEFAULT_LESSON_MINUTES)
+            .coerceIn(MIN_LESSON_MINUTES, MAX_LESSON_MINUTES)
+
+    fun setSlotLessonMinutes(timetableId: Long, minutes: Int) {
+        prefs.edit()
+            .putInt(slotKey(timetableId, KEY_SLOT_LESSON), minutes.coerceIn(MIN_LESSON_MINUTES, MAX_LESSON_MINUTES))
+            .apply()
+    }
+
+    private fun slotKey(timetableId: Long, suffix: String) = "slot_${timetableId}_$suffix"
+
     private fun bgKey(timetableId: Long, suffix: String) = "${timetableId}_$suffix"
 }
+
+/** 每节时长的合理范围（分钟） */
+const val MIN_LESSON_MINUTES = 20
+const val MAX_LESSON_MINUTES = 120
 
 private const val KEY_ACTIVE_ID = "active_timetable_id"
 private const val KEY_BG_URI = "bg_uri"
 private const val KEY_BG_MASK = "bg_mask"
+private const val KEY_SLOT_AUTO = "auto"
+private const val KEY_SLOT_LESSON = "lesson_minutes"
 
 // ---------------------------------------------------------------------------
 // 日期工具

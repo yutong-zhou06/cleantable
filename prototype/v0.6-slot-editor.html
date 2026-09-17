@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>v0.6 作息时间编辑 Demo —— 时分两格 / 中间插入 / 只填开始时间</title>
+<style>
+:root{
+  --bg:#F4F5F9; --panel:#FFFFFF; --line:#E5E8F0; --ink:#20242E; --dim:#7A8294;
+  --accent:#4F6BFF; --err:#D64545; --ok:#1D9E75; --warn:#B47500;
+  --field:#F6F7FB;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;background:var(--bg);color:var(--ink);padding:28px 32px 60px}
+h1{font-size:22px;font-weight:700;margin-bottom:4px}
+.sub{color:var(--dim);font-size:13px;margin-bottom:22px}
+.layout{display:grid;grid-template-columns:340px 1fr;gap:22px;align-items:start}
+@media (max-width:1000px){.layout{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:14px}
+.card h2{font-size:14px;font-weight:700;margin-bottom:10px}
+.card h2 .tag{font-size:11px;font-weight:500;color:var(--accent);background:#EEF1FF;border-radius:6px;padding:2px 7px;margin-left:6px;vertical-align:1px}
+.note{font-size:12px;color:var(--dim);line-height:1.8}
+.note b{color:var(--ink)}
+.row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px dashed var(--line)}
+.row:last-child{border-bottom:none}
+.row label{font-size:13px}
+.hint{font-size:11px;color:var(--dim);margin-top:2px}
+/* 开关 */
+.switch{position:relative;width:40px;height:22px;flex:none}
+.switch input{opacity:0;width:0;height:0;position:absolute}
+.switch span{position:absolute;inset:0;background:#D6DAE4;border-radius:99px;transition:.18s;cursor:pointer}
+.switch span::after{content:"";position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:3px;left:3px;transition:.18s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.switch input:checked + span{background:var(--accent)}
+.switch input:checked + span::after{transform:translateX(18px)}
+input[type=range]{accent-color:var(--accent);width:130px}
+.num{width:52px;border:1px solid var(--line);border-radius:8px;padding:5px 7px;font-size:12.5px;font-family:inherit;text-align:center}
+/* 手机 */
+.phone{width:392px;background:#101320;border-radius:34px;padding:10px;margin:0 auto;box-shadow:0 18px 44px rgba(20,26,45,.32)}
+.screen{background:#EDEFF5;border-radius:26px;height:740px;padding:12px;display:flex;flex-direction:column;overflow:hidden}
+.dialog{background:#fff;border-radius:20px;flex:1;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 6px 20px rgba(20,26,45,.14)}
+.dhead{padding:14px 16px 10px;border-bottom:1px solid #EEF0F6}
+.dhead .t{display:flex;align-items:center;justify-content:space-between}
+.dhead h3{font-size:15.5px;font-weight:600}
+.dhead .meta{font-size:11px;color:var(--dim);margin-top:3px}
+.tbtn{border:none;background:transparent;color:var(--accent);font-size:12px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:4px}
+.modes{padding:10px 16px;background:#FAFBFE;border-bottom:1px solid #EEF0F6}
+.modes .row{padding:6px 0;border-bottom:none}
+.modes .row label{font-size:12.5px}
+.issues{margin:10px 16px 0;background:#FFF6F6;border:1px solid #FFE0E0;border-radius:10px;padding:8px 10px}
+.issues div{font-size:11px;color:var(--err);line-height:1.7}
+.issues.ok{background:#F2FBF6;border-color:#D8F0E4}
+.issues.ok div{color:var(--ok)}
+.colh{display:grid;grid-template-columns:30px 1fr 12px 1fr 44px;gap:6px;padding:10px 16px 4px;font-size:10px;color:var(--dim)}
+.colh .c{text-align:center}
+.rows{flex:1;overflow-y:auto;padding:0 10px 8px}
+.srow{display:grid;grid-template-columns:30px 1fr 12px 1fr 44px;gap:6px;align-items:center;padding:5px 6px;border-radius:10px;position:relative}
+.srow:hover{background:#F7F8FC}
+.srow.bad{background:#FFF3F3}
+.srow .node{font-size:12px;font-weight:600;color:var(--dim);text-align:center}
+.sep{font-size:11px;color:var(--dim);text-align:center}
+.tinp{display:flex;align-items:center;justify-content:center;gap:2px;background:var(--field);border:1.4px solid transparent;border-radius:9px;padding:3px 4px}
+.tinp:focus-within{border-color:var(--accent);background:#fff}
+.tinp.bad{border-color:#F3C6C6;background:#FFF7F7}
+.tinp input{width:22px;border:none;background:transparent;font-family:inherit;font-size:13.5px;text-align:center;outline:none;color:var(--ink);padding:0}
+.tinp .cl{font-size:12px;color:var(--dim)}
+.auto{display:flex;align-items:center;justify-content:center;height:26px;font-size:13.5px;color:var(--dim);background:#F1F3F8;border-radius:9px}
+.ops{display:flex;gap:2px;justify-content:flex-end}
+.op{border:none;background:transparent;cursor:pointer;color:#9AA2B4;font-size:14px;line-height:1;padding:4px;border-radius:6px}
+.op:hover{background:#EEF1FF;color:var(--accent)}
+.op:disabled{opacity:.3;cursor:not-allowed}
+.op.del:hover{background:#FFF0F0;color:var(--err)}
+.addline{display:flex;gap:6px;padding:6px 6px 12px}
+.addline button{flex:1;border:1px dashed #C9D0E0;background:#fff;border-radius:10px;padding:7px;font-size:12px;color:var(--dim);cursor:pointer;font-family:inherit}
+.addline button:hover{border-color:var(--accent);color:var(--accent)}
+.dfoot{display:flex;gap:8px;padding:12px 16px 16px;border-top:1px solid #EEF0F6}
+.dfoot button{flex:1;border-radius:11px;padding:10px;font-size:13.5px;cursor:pointer;font-family:inherit;border:none}
+.dfoot .cancel{background:#F1F3F8;color:var(--ink)}
+.dfoot .save{background:var(--accent);color:#fff}
+.dfoot .save[disabled]{background:#C9D0E0;cursor:not-allowed}
+/* 旧输入框复现 */
+.oldwrap{display:flex;align-items:center;gap:8px}
+.oldinp{width:74px;border:1.4px solid var(--line);border-radius:9px;padding:7px 8px;font-size:13px;font-family:inherit;text-align:center;outline:none}
+.oldinp:focus{border-color:var(--err)}
+.badge{font-size:11px;color:var(--err);background:#FFF0F0;border-radius:6px;padding:2px 6px}
+.caret{font-size:11px;color:var(--dim);margin-top:6px}
+</style>
+</head>
+<body>
+<h1>作息时间编辑改版 Demo（v0.6 提案）</h1>
+<div class="sub">时/分两格输入 · 中间插入节次 · 「只填开始时间 + 每节时长」可开关 —— 中间手机可以直接上手打字试</div>
+
+<div class="layout">
+  <!-- ============ 左：参数与说明 ============ -->
+  <div>
+    <div class="card">
+      <h2>编辑模式 <span class="tag">新</span></h2>
+      <div class="row">
+        <span><label>只填开始时间</label>
+        <div class="hint">下课 = 开始 + 时长，自动生成</div></span>
+        <label class="switch"><input type="checkbox" id="autoMode"><span></span></label>
+      </div>
+      <div class="row">
+        <span><label>每节时长</label>
+        <div class="hint">仅「只填开始时间」模式使用</div></span>
+        <span style="display:flex;align-items:center;gap:6px">
+          <input class="num" id="lessonMin" value="45">
+          <span style="font-size:12px;color:var(--dim)">分钟</span>
+        </span>
+      </div>
+      <div class="row">
+        <span><label>插入后顺延后续节次</label>
+        <div class="hint">默认关（按你的选择：只插入不动后续）</div></span>
+        <label class="switch"><input type="checkbox" id="shiftOn"><span></span></label>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>旧输入框问题复现</h2>
+      <div class="oldwrap">
+        <input class="oldinp" id="oldInp" inputmode="numeric" placeholder="08:00">
+        <span class="badge">现行版本</span>
+      </div>
+      <div class="caret" id="caretInfo">试着输入 0、8、0、0 —— 冒号一出现，光标就会跑到最前面的数字之前，下一次输入的数字插到了小时前面。</div>
+      <div class="note" style="margin-top:8px">这就是你说的那个毛病：单框 + 边输边补冒号，光标映射错乱。<b>新方案直接拆成两格</b>，从根上没这个问题。</div>
+    </div>
+
+    <div class="card">
+      <h2>实现方式（保守）</h2>
+      <div class="note">
+        · <b>数据格式不变</b>：库里仍是 <code>"08:00"</code> 字符串，解析器、课表网格、导入导出全部不动；两格只是输入控件。<br>
+        · <b>输入控件重写</b>：两个数字小格，填满 2 位自动跳到下一格，格内为空时退格回到上一格；非法数字自动修正（时 0–23 / 分 0–59）。<br>
+        · <b>插入</b>：数据层加一个 <code>insertAt()</code>，UI 每行右侧多一个「+」按钮（插到这一行下面），默认值按上一节下课 + 课间推；顺延开关只影响时间字段，不动课程数据。<br>
+        · <b>只填开始时间</b>：开关与「每节时长」存本地偏好（按课表区分，<b>不改数据库结构、不需要迁移</b>）；开启时下课时间按「开始 + 时长」算出并写进草稿，<b>关掉开关后保留成普通数据可继续手改</b>。<br>
+        · 课后校验沿用现有体检（格式错/下课早于上课阻断保存，时间重叠只提醒）。
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 右：手机 ============ -->
+  <div>
+    <div class="phone">
+      <div class="screen">
+        <div class="dialog">
+          <div class="dhead">
+            <div class="t">
+              <h3>每节课时间</h3>
+              <button class="tbtn" id="btnReset">↺ 恢复默认</button>
+            </div>
+            <div class="meta" id="headMeta">共 12 节 · 点格子输入，改完自动校验</div>
+          </div>
+
+          <div class="modes">
+            <div class="row">
+              <span><label>只填开始时间</label>
+              <div class="hint" id="modeHint">关闭中：上下课时间都能手改</div></span>
+              <label class="switch"><input type="checkbox" id="autoMode2"><span></span></label>
+            </div>
+            <div class="row" id="durRow" style="display:none">
+              <span><label>每节时长</label>
+              <div class="hint">下课时间 = 上课时间 + 时长</div></span>
+              <span style="display:flex;align-items:center;gap:6px">
+                <input class="num" id="lessonMin2" value="45">
+                <span style="font-size:12px;color:var(--dim)">分钟</span>
+              </span>
+            </div>
+            <div class="row">
+              <span><label>插入后顺延后续节次</label>
+              <div class="hint">开启后插一节，后面所有节次时间整体后移</div></span>
+              <label class="switch"><input type="checkbox" id="shiftOn2"><span></span></label>
+            </div>
+          </div>
+
+          <div class="issues ok" id="issues"><div>✓ 作息正常</div></div>
+
+          <div class="colh">
+            <div>节次</div><div class="c">上课</div><div></div><div class="c">下课</div><div></div>
+          </div>
+
+          <div class="rows" id="rows"></div>
+
+          <div class="dfoot">
+            <button class="cancel">取消</button>
+            <button class="save" id="btnSave">保存</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="note" style="text-align:center;margin-top:12px">
+      手机里的弹窗可以真实操作：点格子打字、点行尾「<b>+</b>」在下方插入一节、点「<b>×</b>」删除、切换上面的开关看效果。
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ================= 数据（与 App 默认作息一致） ================= */
+const DEFAULTS = [
+  ["08:00","08:45"],["08:55","09:40"],["10:00","10:45"],["10:55","11:40"],
+  ["14:00","14:45"],["14:55","15:40"],["16:00","16:45"],["16:55","17:40"],
+  ["19:00","19:45"],["19:55","20:40"],["20:50","21:35"],["21:45","22:30"]
+];
+const LESSON = 45, BREAK = 10;
+
+let st = { rows: DEFAULTS.map(r=>({s:r[0], e:r[1]})), auto:false, lesson:45, shift:false };
+
+/* ================= 时间工具 ================= */
+const toMin = t => { const [h,m]=t.split(":").map(Number); return h*60+m; };
+const fromMin = m => { m=((m%1440)+1440)%1440; return String(Math.floor(m/60)).padStart(2,"0")+":"+String(m%60).padStart(2,"0"); };
+const valid = t => /^([01]?\d|2[0-3]):[0-5]\d$/.test(t);
+function autoEnd(i){
+  const s = st.rows[i].s;
+  if(!valid(s)) return "--:--";
+  return fromMin(toMin(s) + st.lesson);
+}
+
+/* ================= 渲染行 ================= */
+const rowsEl = document.getElementById("rows");
+
+function inp(rowIdx, field, part, val){
+  const v = val && val.includes(":") ? (part==="h" ? val.split(":")[0] : val.split(":")[1]) : "";
+  return `<input data-r="${rowIdx}" data-f="${field}" data-p="${part}" value="${v}"
+    inputmode="numeric" maxlength="2">`;
+}
+
+function renderRows(){
+  let html = "";
+  st.rows.forEach((r,i)=>{
+    const badS = !valid(r.s), badE = !st.auto && !valid(r.e);
+    html += `<div class="srow ${badS||badE?"bad":""}">
+      <div class="node">${i+1}</div>
+      <div class="tinp ${badS?"bad":""}">
+        ${inp(i,"s","h",r.s)}<span class="cl">:</span>${inp(i,"s","m",r.s)}
+      </div>
+      <div class="sep">—</div>
+      ${ st.auto
+        ? `<div class="auto">${autoEnd(i)}</div>`
+        : `<div class="tinp ${badE?"bad":""}">
+             ${inp(i,"e","h",r.e)}<span class="cl">:</span>${inp(i,"e","m",r.e)}
+           </div>` }
+      <div class="ops">
+        <button class="op" data-ins="${i}" title="在下方插入一节">＋</button>
+        <button class="op del" data-del="${i}" title="删除本节" ${st.rows.length<=1?"disabled":""}>×</button>
+      </div>
+    </div>`;
+  });
+  html += `<div class="addline"><button id="btnAppend">＋ 在末尾加一节</button></div>`;
+  rowsEl.innerHTML = html;
+}
+
+/* ================= 校验 ================= */
+function refreshDerived(){
+  /* 自动模式下的下课格 */
+  if(st.auto){
+    document.querySelectorAll(".srow").forEach((el,i)=>{
+      const cell = el.querySelector(".auto");
+      if(cell) cell.textContent = autoEnd(i);
+    });
+  }
+  /* 体检 */
+  const issues = [];
+  let prevEnd = null;
+  st.rows.forEach((r,i)=>{
+    const n=i+1;
+    const end = st.auto ? autoEnd(i) : r.e;
+    if(!valid(r.s)) issues.push({n,msg:`第 ${n} 节上课时间要填成 HH:mm`,block:true});
+    if(!st.auto && !valid(r.e)) issues.push({n,msg:`第 ${n} 节下课时间要填成 HH:mm`,block:true});
+    if(valid(r.s) && valid(end)){
+      if(toMin(end) <= toMin(r.s)) issues.push({n,msg:`第 ${n} 节下课时间要晚于上课时间`,block:true});
+      else if(prevEnd!=null && toMin(r.s) < prevEnd) issues.push({n,msg:`第 ${n} 节和上一节时间重叠了`,block:false});
+    }
+    if(valid(end)) prevEnd = toMin(end);
+  });
+  const box = document.getElementById("issues");
+  const blocking = issues.filter(x=>x.block);
+  if(issues.length===0){
+    box.className="issues ok"; box.innerHTML = `<div>✓ 作息正常</div>`;
+  } else {
+    box.className="issues";
+    box.innerHTML = issues.slice(0,4).map(x=>
+      `<div>${x.block?"需修改：":"提醒："}${x.msg}</div>`).join("")
+      + (issues.length>4 ? `<div>还有 ${issues.length-4} 条…</div>` : "");
+  }
+  document.getElementById("btnSave").disabled = blocking.length>0;
+  /* 元信息 */
+  document.getElementById("headMeta").textContent =
+    `共 ${st.rows.length} 节 · ` + (st.auto ? `下课按「开始 + ${st.lesson} 分」自动生成` : "点格子输入，改完自动校验");
+}
+
+/* ================= 输入交互：两格、自动跳、退格回退 ================= */
+rowsEl.addEventListener("input", e=>{
+  const t = e.target;
+  if(t.tagName !== "INPUT") return;
+  const clean = t.value.replace(/\D/g,"").slice(0,2);
+  t.value = clean;
+  const r = +t.dataset.r, f = t.dataset.f, p = t.dataset.p;
+  const row = st.rows[r];
+  const other = p==="h" ? (row[f].split(":")[1] ?? "") : (row[f].split(":")[0] ?? "");
+  const h = p==="h" ? clean : other, m = p==="m" ? clean : other;
+  row[f] = `${h}:${m}`;
+  if(clean.length===2) focusNext(t);
+  refreshDerived();
+});
+rowsEl.addEventListener("keydown", e=>{
+  const t = e.target;
+  if(t.tagName!=="INPUT") return;
+  if(e.key === "Backspace" && t.value === ""){ e.preventDefault(); focusPrev(t); }
+  if(e.key === ":" || e.key === "：" ) { e.preventDefault(); focusNext(t); }
+});
+function cells(){ return [...rowsEl.querySelectorAll("input")].filter(x=>!x.disabled); }
+function focusNext(t){ const a=cells(), i=a.indexOf(t); if(i>=0 && i+1<a.length) { a[i+1].focus(); a[i+1].select(); } }
+function focusPrev(t){ const a=cells(), i=a.indexOf(t); if(i>0){ a[i-1].focus(); a[i-1].select(); } }
+
+/* 失焦时纠正非法值：时 0-23 / 分 0-59。
+   注意：这里**不能重建 DOM** —— 重建会让正在被点击的「＋/×」按钮脱离文档树，
+   其 click 事件就再也冒泡不到容器上（插入/删除会失灵）。所以只就地改写值与样式类。 */
+rowsEl.addEventListener("focusout", e=>{
+  const t = e.target;
+  if(t.tagName!=="INPUT") return;
+  const r=+t.dataset.r, f=t.dataset.f, p=t.dataset.p;
+  const row=st.rows[r];
+  let [h,m] = row[f].split(":");
+  if(p==="h" && h!=="" && +h>23) h = "23";
+  if(p==="m" && m!=="" && +m>59) m = "59";
+  row[f] = `${h}:${m}`;
+  rowsEl.querySelectorAll(`input[data-r="${r}"][data-f="${f}"]`).forEach(el=>{
+    el.value = el.dataset.p==="h" ? h : m;
+  });
+  refreshDerived();
+  applyBadClasses();
+});
+
+/** 就地刷新「哪一行/哪个格子有错」的标红，不重建 DOM */
+function applyBadClasses(){
+  rowsEl.querySelectorAll(".srow").forEach((el,i)=>{
+    const rec = st.rows[i];
+    if(!rec) return;
+    const badS = !valid(rec.s);
+    const badE = !st.auto && !valid(rec.e);
+    el.classList.toggle("bad", badS||badE);
+    const tins = el.querySelectorAll(".tinp");
+    if(tins[0]) tins[0].classList.toggle("bad", badS);
+    if(tins[1]) tins[1].classList.toggle("bad", badE);
+  });
+}
+
+/* 插入 / 删除 / 末尾加 */
+rowsEl.addEventListener("click", e=>{
+  const ins = e.target.closest("[data-ins]"), del = e.target.closest("[data-del]");
+  if(ins){
+    const i = +ins.dataset.ins;
+    const prev = st.rows[i];
+    const s = valid(prev.e) ? fromMin(toMin(prev.e)+BREAK) : "08:00";
+    const neo = { s, e: fromMin(toMin(s)+LESSON) };
+    st.rows.splice(i+1, 0, neo);
+    if(st.shift){
+      const delta = LESSON + BREAK;
+      for(let k=i+2;k<st.rows.length;k++){
+        const r = st.rows[k];
+        if(valid(r.s)) r.s = fromMin(toMin(r.s)+delta);
+        if(valid(r.e)) r.e = fromMin(toMin(r.e)+delta);
+      }
+    }
+    renderRows(); refreshDerived();
+    const cell = rowsEl.querySelector(`[data-r="${i+1}"][data-p="h"]`);
+    if(cell){ cell.focus(); cell.select(); }
+    return;
+  }
+  if(del){
+    const i = +del.dataset.del;
+    if(st.rows.length>1){ st.rows.splice(i,1); renderRows(); refreshDerived(); }
+  }
+  if(e.target.id === "btnAppend"){
+    const last = st.rows[st.rows.length-1];
+    const s = valid(last.e) ? fromMin(toMin(last.e)+BREAK) : "08:00";
+    st.rows.push({ s, e: fromMin(toMin(s)+LESSON) });
+    renderRows(); refreshDerived();
+    const cell = rowsEl.querySelector(`[data-r="${st.rows.length-1}"][data-p="h"]`);
+    if(cell){ cell.focus(); cell.select(); }
+  }
+});
+
+/* ================= 开关联动（左栏 + 手机内两份，保持同步） ================= */
+function bindAuto(){
+  const a1=document.getElementById("autoMode"), a2=document.getElementById("autoMode2");
+  const apply = v => {
+    st.auto = v; a1.checked=v; a2.checked=v;
+    document.getElementById("durRow").style.display = v ? "flex" : "none";
+    document.getElementById("modeHint").textContent = v
+      ? "开启中：只填上课时间，下课自动算" : "关闭中：上下课时间都能手改";
+    renderRows(); refreshDerived();
+  };
+  a1.addEventListener("change", ()=>apply(a1.checked));
+  a2.addEventListener("change", ()=>apply(a2.checked));
+  apply(false);
+}
+function bindLesson(){
+  const i1=document.getElementById("lessonMin"), i2=document.getElementById("lessonMin2");
+  const apply = v => {
+    st.lesson = Math.min(120, Math.max(20, v||45));
+    i1.value = st.lesson; i2.value = st.lesson;
+    refreshDerived();
+  };
+  i1.addEventListener("input", ()=>apply(+i1.value));
+  i2.addEventListener("input", ()=>apply(+i2.value));
+}
+function bindShift(){
+  const s1=document.getElementById("shiftOn"), s2=document.getElementById("shiftOn2");
+  const apply = v => { st.shift = v; s1.checked=v; s2.checked=v; };
+  s1.addEventListener("change", ()=>apply(s1.checked));
+  s2.addEventListener("change", ()=>apply(s2.checked));
+  apply(false);
+}
+document.getElementById("btnReset").addEventListener("click", ()=>{
+  st.rows = DEFAULTS.map(r=>({s:r[0], e:r[1]}));
+  renderRows(); refreshDerived();
+});
+
+/* ================= 旧输入框问题复现 ================= */
+const oldInp = document.getElementById("oldInp");
+const caretInfo = document.getElementById("caretInfo");
+oldInp.addEventListener("input", ()=>{
+  const digits = oldInp.value.replace(/\D/g,"").slice(0,4);
+  let out;
+  if(digits.length<=2) out = digits;
+  else if(digits.length===3){
+    const two = +digits.slice(0,2);
+    out = (two>=0 && two<=23) ? `${digits.slice(0,2)}:${digits[2]}` : `0${digits[0]}:${digits.slice(1)}`;
+  } else out = `${digits.slice(0,2)}:${digits.slice(2)}`;
+  const inserted = out.length > oldInp.value.length;
+  oldInp.value = out;
+  if(inserted && out.includes(":")){
+    oldInp.setSelectionRange(0,0);      /* 复现：光标被丢到最前面 */
+    caretInfo.textContent = "⚠ 光标已跳到最前面（当前位置：0）。接着输入的数字会插到小时前面，比如「:30」变成「3008:」。";
+  }
+});
+
+/* ================= 启动 ================= */
+bindAuto(); bindLesson(); bindShift();
+renderRows(); refreshDerived();
+</script>
+</body>
+</html>

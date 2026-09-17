@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>v0.6 小组件样式 Demo —— 今日+明日 / 课程独立配色 / 字号调节</title>
+<style>
+:root{
+  --bg:#F4F5F9; --panel:#FFFFFF; --line:#E5E8F0; --ink:#20242E; --dim:#7A8294;
+  --accent:#4F6BFF; --ok:#1D9E75;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Segoe UI","Microsoft YaHei",system-ui,sans-serif;background:var(--bg);color:var(--ink);padding:28px 32px 60px}
+h1{font-size:22px;font-weight:700;margin-bottom:4px}
+.sub{color:var(--dim);font-size:13px;margin-bottom:22px}
+.layout{display:grid;grid-template-columns:330px 1fr;gap:22px;align-items:start}
+@media (max-width:980px){.layout{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:14px}
+.card h2{font-size:14px;font-weight:700;margin-bottom:12px}
+.card h2 .tag{font-size:11px;font-weight:500;color:var(--accent);background:#EEF1FF;border-radius:6px;padding:2px 7px;margin-left:6px;vertical-align:1px}
+.row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px dashed var(--line)}
+.row:last-child{border-bottom:none}
+.row label{font-size:13px}
+.row .hint{font-size:11px;color:var(--dim);margin-top:2px}
+.seg{display:flex;background:#F0F2F7;border-radius:9px;padding:3px;gap:2px}
+.seg button{border:none;background:transparent;font-size:12px;padding:5px 11px;border-radius:7px;cursor:pointer;color:var(--dim);font-family:inherit}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(30,40,60,.12);font-weight:600}
+.swatches{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;max-width:190px}
+.sw{width:20px;height:20px;border-radius:6px;cursor:pointer;border:2px solid transparent}
+.sw.on{border-color:var(--ink)}
+input[type=range]{accent-color:var(--accent);width:150px}
+.val{font-size:12px;color:var(--dim);width:44px;text-align:right}
+.btn{border:1px solid var(--line);background:#fff;border-radius:9px;padding:7px 14px;font-size:12.5px;cursor:pointer;color:var(--ink);font-family:inherit}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+/* 预览区 */
+.preview{background:linear-gradient(135deg,#3B4252 0%,#2E3440 55%,#434C5E 100%);border-radius:18px;padding:34px 30px 28px;min-height:560px}
+.preview .cap{color:#B8C0CE;font-size:12px;margin:0 0 8px 4px}
+.wrow{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+canvas{border-radius:14px;box-shadow:0 8px 26px rgba(0,0,0,.4)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:16px;padding:0 4px}
+.legend span{color:#B8C0CE;font-size:11.5px;display:flex;align-items:center;gap:5px}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.note{font-size:12px;color:var(--dim);line-height:1.75;margin-top:4px}
+.note b{color:var(--ink)}
+.compare{display:flex;gap:8px;margin-top:6px}
+</style>
+</head>
+<body>
+<h1>小组件样式改版 Demo（v0.6 提案）</h1>
+<div class="sub">今日 + 明日双栏 4×2 · 每门课独立配色（沿用课表界面色板） · 字号调节 —— 参考主流课表组件排版，视觉为自己一套</div>
+
+<div class="layout">
+  <!-- ============ 左：设置 ============ -->
+  <div>
+    <div class="card">
+      <h2>小组件内容 <span class="tag">新</span></h2>
+      <div class="row">
+        <label>4×2 显示范围</label>
+        <div class="seg" id="segRange">
+          <button data-v="today">仅今日</button>
+          <button data-v="both" class="on">今日+明日</button>
+        </div>
+      </div>
+      <div class="row">
+        <label>配色模式</label>
+        <div class="seg" id="segColor">
+          <button data-v="single">单一强调色</button>
+          <button data-v="course" class="on">按课程区分</button>
+        </div>
+      </div>
+      <div class="row"><span>
+        <label>组件主题</label>
+        <div class="hint">沿用 v0.5.0 设置</div>
+      </span>
+        <div class="seg" id="segTheme">
+          <button data-v="light" class="on">浅色</button>
+          <button data-v="dark">深色</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>字号调节 <span class="tag">新</span></h2>
+      <div class="row">
+        <span>
+          <label>整体字号</label>
+          <div class="hint">标题 / 课程名 / 教室时间 同步缩放</div>
+        </span>
+        <span style="display:flex;align-items:center;gap:8px">
+          <input type="range" id="fontScale" min="85" max="135" step="5" value="100">
+          <span class="val" id="fontVal">100%</span>
+        </span>
+      </div>
+      <div class="row">
+        <label>快速档位</label>
+        <div class="seg" id="segFont">
+          <button data-v="90">小</button>
+          <button data-v="100" class="on">标准</button>
+          <button data-v="115">大</button>
+          <button data-v="130">特大</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>沿用 v0.5.0 的设置</h2>
+      <div class="row">
+        <span><label>卡片圆角</label><div class="hint">演示用，实现里仍在样式页</div></span>
+        <span style="display:flex;align-items:center;gap:8px">
+          <input type="range" id="radius" min="6" max="22" step="1" value="14">
+          <span class="val" id="radiusVal">14dp</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>试一试</h2>
+      <div class="row">
+        <span><label>当前时间</label><div class="hint" id="timeHint">拖动看「进行中/已结束」状态</div></span>
+        <span style="display:flex;align-items:center;gap:8px">
+          <input type="range" id="clock" min="420" max="1380" step="10" value="880">
+          <span class="val" id="clockVal">14:40</span>
+        </span>
+      </div>
+      <div class="compare">
+        <button class="btn primary" id="btnNew">看新方案默认效果</button>
+        <button class="btn" id="btnOld">回到 v0.5.0 现状</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>实现方式（保持保守）</h2>
+      <div class="note">
+        · <b>快照管线一行不动</b>：Canvas 画位图 → ImageView 显示 → 一键更新面板，全部沿用。<br>
+        · <b>load()</b> 从「只查今天」扩展为「查今天+明天」两条查询，其余不变。<br>
+        · <b>课程颜色</b>直接读库里的 colorArgb（课表网格同款数据），用和课表界面同一套
+        「按色相派生浅底/深字/色条」规则，组件与 App 内观感一致；深色主题同样自动适配。<br>
+        · <b>字号</b>是绘制参数整体乘一个系数，存进 WidgetStylePrefs，即时生效、重启保持。<br>
+        · 2×2「下一节课」与 4×1「简洁条」同步换新排版但布局不变。
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 右：桌面预览 ============ -->
+  <div class="preview">
+    <div class="cap">桌面预览 · 4×2 主组件（今日 + 明日）</div>
+    <canvas id="w42" width="920" height="420" style="width:460px;height:210px"></canvas>
+    <div class="wrow" style="margin-top:26px">
+      <div>
+        <div class="cap">2×2 下一节课</div>
+        <canvas id="w22" width="380" height="380" style="width:190px;height:190px"></canvas>
+      </div>
+      <div>
+        <div class="cap">4×1 简洁条</div>
+        <canvas id="w41" width="920" height="148" style="width:460px;height:74px"></canvas>
+      </div>
+    </div>
+    <div class="legend" id="legend"></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ================= 样例数据（ hue 取自 App 内 8 色课程色板） ================= */
+const COURSES = [
+  { name:"数据可视化",   room:"5阶106（中心教学楼）", start:"13:30", end:"17:30", hue:152, day:0 },
+  { name:"软件工程实验", room:"多媒体实验室11",       start:"20:30", end:"21:40", hue:22,  day:0 },
+  { name:"高等数学",     room:"3阶201",               start:"08:00", end:"09:50", hue:262, day:0 },
+  { name:"数据可视化",   room:"多媒体实验室11",       start:"08:00", end:"09:50", hue:152, day:1 },
+  { name:"无人机技术实验", room:"多媒体实验室12",     start:"13:30", end:"15:20", hue:210, day:1 },
+  { name:"就业指导",     room:"@5阶106（中心教…）",   start:"16:00", end:"17:40", hue:330, day:1 }
+];
+const STATE = { PAST:0, ONGOING:1, UP:2 };
+
+const cfg = { range:"both", colorMode:"course", theme:"light", fontScale:100, radius:14, clock:880 };
+
+/* ============ 颜色工具（与 App courseColors() 同一套派生规则） ============ */
+function hsl(h,s,l,a){ return `hsla(${h},${s}%,${l}%,${a==null?1:a})`; }
+function courseColors(hue, dark){
+  if(dark) return { bar:hsl(hue,60,62), name:hsl(hue,70,80), sub:hsl(hue,25,68), rowBg:hsl(hue,45,40,.14) };
+  return { bar:hsl(hue,66,56), name:hsl(hue,52,28), sub:hsl(hue,20,45), rowBg:hsl(hue,68,53,.10) };
+}
+const PAL = dark => dark
+  ? { bg:"#1B1E28", title:"#F2F4F8", dim:"#8B93A5", faint:"#5B6272", accent:"#6D8BFF",
+      rowUp:"rgba(255,255,255,.08)", rowPast:"rgba(255,255,255,.04)", line:"rgba(255,255,255,.10)" }
+  : { bg:"#FBFCFE", title:"#20242E", dim:"#7A8294", faint:"#A8AFBF", accent:"#4F6BFF",
+      rowUp:"rgba(30,36,50,.055)", rowPast:"rgba(30,36,50,.035)", line:"rgba(30,36,50,.10)" };
+
+function toMin(t){ const [h,m]=t.split(":").map(Number); return h*60+m; }
+function courseState(c, now){
+  if(now >= toMin(c.end)) return STATE.PAST;
+  if(now >= toMin(c.start)) return STATE.ONGOING;
+  return STATE.UP;
+}
+const fmtClock = m => `${String(Math.floor(m/60)).padStart(2,"0")}:${String(m%60).padStart(2,"0")}`;
+
+/* ================= 画布工具 ================= */
+function prep(id, dpr){
+  const cv = document.getElementById(id);
+  const ctx = cv.getContext("2d");
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  return { cv, ctx };
+}
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);     ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+function font(ctx,px,bold,color){
+  ctx.font = `${bold?"600":"400"} ${px}px "Segoe UI","Microsoft YaHei",sans-serif`;
+  ctx.fillStyle = color;
+}
+function ellip(ctx,s,maxPx){
+  if(ctx.measureText(s).width <= maxPx) return s;
+  while(s.length>1 && ctx.measureText(s+"…").width>maxPx) s=s.slice(0,-1);
+  return s+"…";
+}
+function vCenter(top,h,px){ return top + h/2 + px*0.36; }
+
+/* ================= 4×2：今日 + 明日双栏 ================= */
+function draw42(dpr){
+  const { ctx } = prep("w42", dpr);
+  const W = 920, H = 420, S = cfg.fontScale/100, d = 2;   // d=密度(演示固定 2x)
+  const dark = cfg.theme==="dark", C = PAL(dark);
+  const R = cfg.radius*d;
+  ctx.clearRect(0,0,W,H);
+  roundRect(ctx,0,0,W,H,R); ctx.fillStyle=C.bg; ctx.fill();
+
+  const now = cfg.clock;
+  const today = COURSES.filter(c=>c.day===0);
+  const tmrw  = COURSES.filter(c=>c.day===1);
+  const pad = 13*d;
+
+  /* 标题行：课表名 + 日期周次（参考排版：左名称右日期，但样式自拟） */
+  font(ctx, 14.5*d*S, true, C.title);
+  ctx.textAlign="left";
+  ctx.fillText("示例大学 · 大二上", pad, pad+13*d*S);
+  font(ctx, 10.5*d*S, false, C.dim); ctx.textAlign="right";
+  ctx.fillText("6.12 第16周 周四", W-pad, pad+13*d*S);
+
+  /* 双栏 */
+  const colTop = pad + 24*d*S;
+  const colH = H - colTop - pad;
+  const colW = (W - pad*2 - 14*d) / 2;
+  drawColumn(ctx, pad, colTop, colW, colH, "今天", today, now, d, S, C, dark, false);
+  drawColumn(ctx, pad+colW+14*d, colTop, colW, colH, "明天", tmrw, null, d, S, C, dark, true);
+
+  /* 中缝分隔线 */
+  ctx.strokeStyle=C.line; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(pad+colW+7*d, colTop+2); ctx.lineTo(pad+colW+7*d, colTop+colH-2); ctx.stroke();
+
+  drawLegend(dark);
+}
+
+function drawColumn(ctx, x, y, w, h, label, list, now, d, S, C, dark, isTomorrow){
+  font(ctx, 11*d*S, true, isTomorrow ? C.dim : C.accent);
+  ctx.textAlign="left";
+  ctx.fillText(label, x, y + 8*d*S);
+
+  const listTop = y + 15*d*S;
+  const rows = list.slice(0,3);
+  if(rows.length===0){
+    font(ctx, 10*d*S, false, C.faint);
+    ctx.fillText(label==="今天" ? "今天没有课" : "明天没有课", x, listTop + 14*d);
+    return;
+  }
+  const gap = 5*d;
+  const rowH = Math.min((h - 15*d*S + gap) / rows.length, 44*d*S);
+
+  rows.forEach((c,i)=>{
+    const ry = listTop + i*(rowH+gap);
+    const st = isTomorrow ? STATE.UP : courseState(c, now);
+    const cc = cfg.colorMode==="course" ? courseColors(c.hue, dark) : null;
+    const nameC  = st===STATE.PAST ? C.faint : (cc ? cc.name : C.title);
+    const subC   = st===STATE.PAST ? C.faint : (cc ? cc.sub  : C.dim);
+    const barC   = cc ? cc.bar : C.accent;
+
+    /* 行底 */
+    roundRect(ctx,x,ry,w,rowH, 7*d);
+    ctx.fillStyle = st===STATE.PAST ? C.rowPast : C.rowUp;
+    ctx.fill();
+    /* 进行中：整行染课程色浅底 + 细描边 */
+    if(st===STATE.ONGOING){
+      roundRect(ctx,x,ry,w,rowH, 7*d);
+      ctx.fillStyle = cc ? cc.rowBg.replace(/[\d.]+\)$/, "0.16)") : "rgba(79,107,255,.13)";
+      ctx.fill();
+      ctx.strokeStyle = barC; ctx.lineWidth = 1.4*d; ctx.stroke();
+    }
+    /* 左侧色条（课程色 / 强调色）——参考排版的视觉锚点，样式自拟为通高细条 */
+    roundRect(ctx, x+4.5*d, ry+5*d, 3*d, rowH-10*d, 1.5*d);
+    ctx.fillStyle = st===STATE.PAST ? C.faint : barC;
+    ctx.fill();
+
+    /* 文本：课程名一行，教室+时间一行 */
+    const tx = x + 13*d;
+    font(ctx, 11.5*d*S, true, nameC);
+    ctx.textAlign="left";
+    ctx.fillText(ellip(ctx, c.name, w - 13*d - 8*d), tx, vCenter(ry+4*d, rowH-8*d, 11.5*d*S));
+    font(ctx, 9*d*S, false, subC);
+    const sub = `${c.room} · ${c.start}–${c.end}`;
+    ctx.fillText(ellip(ctx, sub, w - 13*d - 8*d), tx, vCenter(ry+4*d, rowH-8*d, 11.5*d*S) + 12.5*d*S);
+  });
+}
+
+/* ================= 2×2 下一节课 ================= */
+function draw22(dpr){
+  const { ctx } = prep("w22", dpr);
+  const W=380,H=380,S=cfg.fontScale/100,d=2,dark=cfg.theme==="dark",C=PAL(dark);
+  ctx.clearRect(0,0,W,H);
+  roundRect(ctx,0,0,W,H,cfg.radius*d); ctx.fillStyle=C.bg; ctx.fill();
+  const now=cfg.clock, pad=12*d;
+  const list=COURSES.filter(c=>c.day===0);
+  const target = list.find(c=>courseState(c,now)===STATE.ONGOING) || list.find(c=>courseState(c,now)===STATE.UP);
+  font(ctx,10*d*S,true,C.dim); ctx.textAlign="left";
+  ctx.fillText(target && courseState(target,now)===STATE.ONGOING ? "正在上" : "下一节", pad, pad+9*d*S);
+  if(!target){
+    font(ctx,11*d*S,false,C.faint); ctx.fillText("今天的课都上完了", pad, H/2);
+    return;
+  }
+  const cc = cfg.colorMode==="course" ? courseColors(target.hue,dark) : null;
+  /* 顶部色条横贯（新排版锚点） */
+  roundRect(ctx, pad, pad+16*d*S, W-2*pad, 3.5*d, 2*d);
+  ctx.fillStyle = cc ? cc.bar : C.accent; ctx.fill();
+  font(ctx,13*d*S,true, cc?cc.name:C.title);
+  ctx.fillText(ellip(ctx,target.name,W-2*pad), pad, pad+42*d*S);
+  font(ctx,9.5*d*S,false, cc?cc.sub:C.dim);
+  ctx.fillText(ellip(ctx,target.room,W-2*pad), pad, pad+60*d*S);
+  font(ctx,12*d*S,true, cc?cc.bar:C.accent);
+  ctx.fillText(`${target.start} – ${target.end}`, pad, pad+82*d*S);
+}
+
+/* ================= 4×1 简洁条 ================= */
+function draw41(dpr){
+  const { ctx } = prep("w41", dpr);
+  const W=920,H=148,S=cfg.fontScale/100,d=2,dark=cfg.theme==="dark",C=PAL(dark);
+  ctx.clearRect(0,0,W,H);
+  roundRect(ctx,0,0,W,H,cfg.radius*d); ctx.fillStyle=C.bg; ctx.fill();
+  const now=cfg.clock, pad=12*d;
+  const list=COURSES.filter(c=>c.day===0);
+  const target = list.find(c=>courseState(c,now)===STATE.ONGOING) || list.find(c=>courseState(c,now)===STATE.UP);
+  if(!target){
+    font(ctx,11*d*S,false,C.dim); ctx.textAlign="left";
+    ctx.fillText(list.length? "今天的课已结束" : "今天没有课", pad+6*d, vCenter(0,H,11*d*S));
+    return;
+  }
+  const cc = cfg.colorMode==="course" ? courseColors(target.hue,dark) : null;
+  /* 左端竖色条 */
+  roundRect(ctx, pad, pad+8*d, 3.5*d, H-2*pad-16*d, 2*d);
+  ctx.fillStyle = cc ? cc.bar : C.accent; ctx.fill();
+  const timeX = pad + 14*d;
+  font(ctx,13*d*S,true, cc?cc.bar:C.accent); ctx.textAlign="left";
+  ctx.fillText(target.start, timeX, vCenter(0,H,13*d*S));
+  const nameX = timeX + ctx.measureText(target.start).width + 9*d;
+  font(ctx,12*d*S,true, cc?cc.name:C.title);
+  const name = ellip(ctx, target.name, W - nameX - pad - 60*d);
+  ctx.fillText(name, nameX, vCenter(0,H,12*d*S));
+  font(ctx,9.5*d*S,false, cc?cc.sub:C.dim);
+  ctx.fillText(ellip(ctx, target.room, W - nameX - ctx.measureText(name).width - pad - 12*d),
+    nameX + ctx.measureText(name).width + 7*d, vCenter(0,H,9.5*d*S)+1);
+}
+
+/* ================= 图例 ================= */
+function drawLegend(dark){
+  const box = document.getElementById("legend");
+  const hues = [...new Set(COURSES.map(c=>c.hue))];
+  box.innerHTML = "";
+  if(cfg.colorMode==="course"){
+    hues.forEach(h=>{
+      const cc = courseColors(h, dark);
+      box.insertAdjacentHTML("beforeend",
+        `<span><i class="dot" style="background:${cc.bar}"></i>${COURSES.find(c=>c.hue===h).name}</span>`);
+    });
+    box.insertAdjacentHTML("beforeend",
+      `<span>颜色来自课表界面同一套色板 · 深浅主题自动适配</span>`);
+  } else {
+    box.insertAdjacentHTML("beforeend",
+      `<span><i class="dot" style="background:${PAL(dark).accent}"></i>单一强调色（v0.5.0 现状）</span>`);
+  }
+}
+
+/* ================= 渲染调度 ================= */
+function renderAll(){
+  const dpr = window.devicePixelRatio || 2;
+  draw42(dpr); draw22(dpr); draw41(dpr);
+}
+function bindSeg(id, key){
+  document.getElementById(id).addEventListener("click", e=>{
+    const b = e.target.closest("button"); if(!b) return;
+    [...e.currentTarget.children].forEach(x=>x.classList.remove("on"));
+    b.classList.add("on"); cfg[key]=b.dataset.v; renderAll();
+  });
+}
+bindSeg("segRange","range"); bindSeg("segColor","colorMode"); bindSeg("segTheme","theme"); bindSeg("segFont","font");
+document.getElementById("fontScale").addEventListener("input", e=>{
+  cfg.fontScale = +e.target.value;
+  document.getElementById("fontVal").textContent = cfg.fontScale+"%";
+  document.querySelectorAll("#segFont button").forEach(b=>b.classList.toggle("on", +b.dataset.v===cfg.fontScale));
+  renderAll();
+});
+document.getElementById("radius").addEventListener("input", e=>{
+  cfg.radius=+e.target.value; document.getElementById("radiusVal").textContent=cfg.radius+"dp"; renderAll();
+});
+document.getElementById("clock").addEventListener("input", e=>{
+  cfg.clock=+e.target.value; document.getElementById("clockVal").textContent=fmtClock(cfg.clock); renderAll();
+});
+document.getElementById("btnNew").addEventListener("click", ()=>{
+  Object.assign(cfg,{range:"both",colorMode:"course",fontScale:115,radius:14});
+  syncUI(); renderAll();
+});
+document.getElementById("btnOld").addEventListener("click", ()=>{
+  Object.assign(cfg,{range:"today",colorMode:"single",fontScale:100,radius:14});
+  syncUI(); renderAll();
+});
+function syncUI(){
+  const set=(id,v)=>document.querySelectorAll("#"+id+" button").forEach(b=>b.classList.toggle("on",b.dataset.v===String(v)));
+  set("segRange",cfg.range); set("segColor",cfg.colorMode); set("segTheme",cfg.theme); set("segFont",cfg.fontScale);
+  document.getElementById("fontScale").value=cfg.fontScale;
+  document.getElementById("fontVal").textContent=cfg.fontScale+"%";
+  document.getElementById("radius").value=cfg.radius;
+  document.getElementById("radiusVal").textContent=cfg.radius+"dp";
+}
+renderAll();
+</script>
+</body>
+</html>

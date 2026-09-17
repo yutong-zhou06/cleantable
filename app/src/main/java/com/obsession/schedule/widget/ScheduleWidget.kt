@@ -20,11 +20,14 @@ import com.obsession.schedule.MainActivity
 import com.obsession.schedule.R
 import com.obsession.schedule.data.AppDatabase
 import com.obsession.schedule.data.ConfigStore
+import com.obsession.schedule.data.CourseEntity
+import com.obsession.schedule.data.TimeSlotEntity
 import com.obsession.schedule.data.mondayOfDay
 import com.obsession.schedule.ui.theme.ThemeController
 import com.obsession.schedule.ui.theme.ThemeMode
 import kotlinx.coroutines.runBlocking
 import java.util.Calendar
+import java.util.Locale
 
 /**
  * 桌面小组件的数据准备与渲染。
@@ -55,14 +58,25 @@ object ScheduleWidgetRenderer {
         val startTime: String,
         val endTime: String,
         val node: Int,
-        val state: Int
+        val state: Int,
+        /** 课表网格里这门课的颜色（ARGB），组件按色相派生同款配色 */
+        val colorArgb: Int
     )
 
     internal data class TodaySnapshot(
+        /** 课表名，标题行左侧显示 */
+        val timetableName: String,
+        /** 今天日期「M.d」 */
+        val dateLabel: String,
+        /** 「第 N 周」，未设置学期起始日时为空串 */
+        val weekText: String,
         val dayLabel: String,
         val courses: List<WidgetCourse>,
         val ongoing: WidgetCourse?,
-        val upcoming: WidgetCourse?
+        val upcoming: WidgetCourse?,
+        /** 明天的星期标签与课程（4×2 双栏） */
+        val tomorrowLabel: String,
+        val tomorrow: List<WidgetCourse>
     )
 
     // ------------------------------------------------------------------
@@ -160,44 +174,74 @@ object ScheduleWidgetRenderer {
             baseConfig.copy(firstWeekStart = mondayOfDay(now))
         }
         val tid = timetable.id
-        val week = config.weekOfDay(now)
-
         val slots = runBlocking { dao.allTimeSlots(tid) }.associateBy { it.node }
-        val courses = runBlocking { dao.allCourses(tid) }
-            .filter { it.dayOfWeek == todayIndex && it.activeIn(week) }
-            .sortedBy { it.startNode }
+        val allCourses = runBlocking { dao.allCourses(tid) }
 
-        val items = courses.map { course ->
-            // 起止时间分别取首节与末节的作息：连堂课（如 1-2 节）的
-            // 结束时间应该是第 2 节下课，而不是第 1 节
-            val startSlot = slots[course.startNode]
-            val endSlot = slots[course.endNode] ?: startSlot
-            val start = startSlot?.startTime ?: "--:--"
-            val end = endSlot?.endTime ?: "--:--"
-            WidgetCourse(
-                name = course.name,
-                room = course.room,
-                startTime = start,
-                endTime = end,
-                node = course.startNode,
-                state = stateOf(nowMinutes, start, end)
-            )
-        }
+        val week = config.weekOfDay(now)
+        val items = buildItems(
+            allCourses.filter { it.dayOfWeek == todayIndex && it.activeIn(week) },
+            slots, nowMinutes
+        )
+
+        // v0.6：明天也一起装进快照（4×2 双栏）。注意周日→周一会跨到下一周，
+        // 周次要按「明天的日期」重算，否则周日晚上明天的课会被算丢。
+        // 明天的课一律按「未开始」状态画（现在还没到）。
+        val tomorrowCal = (calendar.clone() as Calendar).apply { add(Calendar.DAY_OF_YEAR, 1) }
+        val tomorrowIndex = weekdayIndex(tomorrowCal)
+        val tomorrowWeek = config.weekOfDay(tomorrowCal.timeInMillis)
+        val tomorrowItems = buildItems(
+            allCourses.filter { it.dayOfWeek == tomorrowIndex && it.activeIn(tomorrowWeek) },
+            slots, nowMinutes = null
+        )
 
         return TodaySnapshot(
+            timetableName = timetable.name,
+            dateLabel = String.format(
+                Locale.ROOT, "%d.%d",
+                calendar.get(Calendar.MONTH) + 1, calendar.get(Calendar.DAY_OF_MONTH)
+            ),
+            weekText = if (baseConfig.firstWeekStart > 0) "第 $week 周" else "",
             dayLabel = WEEKDAY_NAMES[todayIndex - 1],
             courses = items,
             ongoing = items.firstOrNull { it.state == STATE_ONGOING },
-            upcoming = items.firstOrNull { it.state == STATE_UPCOMING }
+            upcoming = items.firstOrNull { it.state == STATE_UPCOMING },
+            tomorrowLabel = WEEKDAY_NAMES[tomorrowIndex - 1],
+            tomorrow = tomorrowItems
+        )
+    }
+
+    /** 把课程实体映射成组件行；[nowMinutes] 传 null 表示全部按「未开始」处理（明天的课） */
+    private fun buildItems(
+        courses: List<CourseEntity>,
+        slots: Map<Int, TimeSlotEntity>,
+        nowMinutes: Int?
+    ): List<WidgetCourse> = courses.sortedBy { it.startNode }.map { course ->
+        // 起止时间分别取首节与末节的作息：连堂课（如 1-2 节）的
+        // 结束时间应该是第 2 节下课，而不是第 1 节
+        val startSlot = slots[course.startNode]
+        val endSlot = slots[course.endNode] ?: startSlot
+        val start = startSlot?.startTime ?: "--:--"
+        val end = endSlot?.endTime ?: "--:--"
+        WidgetCourse(
+            name = course.name,
+            room = course.room,
+            startTime = start,
+            endTime = end,
+            node = course.startNode,
+            state = if (nowMinutes == null) STATE_UPCOMING else stateOf(nowMinutes, start, end),
+            colorArgb = course.colorArgb
         )
     }
 
     /** 库里一张课表都没有（理论只在异常迁移时出现）时的空快照 */
     private fun emptySnapshot(todayIndex: Int): TodaySnapshot = TodaySnapshot(
+        timetableName = "", dateLabel = "", weekText = "",
         dayLabel = WEEKDAY_NAMES[todayIndex - 1],
         courses = emptyList(),
         ongoing = null,
-        upcoming = null
+        upcoming = null,
+        tomorrowLabel = "",
+        tomorrow = emptyList()
     )
 
     /**
@@ -510,6 +554,74 @@ internal object WidgetSnapshotRenderer {
         return (color and 0x00FFFFFF) or (a shl 24)
     }
 
+    /** 把任意颜色降透明度，用于分隔线等中性元素 */
+    private fun withAlpha(color: Int, alpha: Int): Int =
+        (color and 0x00FFFFFF) or (alpha.coerceIn(0, 255) shl 24)
+
+    // ------------------------------------------------------------------
+    // v0.6：每门课独立配色（与课表界面同一套「按色相派生」规则）
+    // ------------------------------------------------------------------
+
+    /** 单门课在快照里的一组颜色 */
+    private data class CoursePaint(
+        val bar: Int,    // 左侧色条 / 时间 / 高亮描边
+        val name: Int,   // 课程名
+        val sub: Int,    // 教室 · 时间次级文字
+        val tint: Int    // 「正在上」整行浅底
+    )
+
+    /**
+     * 数据库里只存 ARGB 原色（兼容 WakeUp 导入文件），渲染时只用它提供色相，
+     * 明度饱和度按主题重新生成 —— 用户选的颜色再鲜艳，落进深色主题也是柔和的。
+     * 规则与 ui/theme/CourseColors.kt 保持一致，组件和 App 内观感统一。
+     */
+    private fun coursePaint(
+        course: ScheduleWidgetRenderer.WidgetCourse,
+        prefs: WidgetStylePrefs,
+        dark: Boolean,
+        C: Palette
+    ): CoursePaint {
+        if (prefs.colorMode == WidgetStylePrefs.COLOR_SINGLE) {
+            return CoursePaint(C.accent, C.title, C.dim, C.nowBg)
+        }
+        val hsv = FloatArray(3)
+        Color.colorToHSV(course.colorArgb, hsv)
+        val h = hsv[0]
+        return if (dark) {
+            CoursePaint(
+                bar = hsl(h, 0.60f, 0.62f),
+                name = hsl(h, 0.70f, 0.80f),
+                sub = hsl(h, 0.24f, 0.68f),
+                tint = hsl(h, 0.45f, 0.42f, 0.22f)
+            )
+        } else {
+            CoursePaint(
+                bar = hsl(h, 0.66f, 0.56f),
+                name = hsl(h, 0.52f, 0.28f),
+                sub = hsl(h, 0.20f, 0.42f),
+                tint = hsl(h, 0.68f, 0.53f, 0.15f)
+            )
+        }
+    }
+
+    /** 标准 HSL → ARGB（h 单位：度）。android.graphics 只有 HSV，HSL 得自己换算 */
+    private fun hsl(h: Float, s: Float, l: Float, a: Float = 1f): Int {
+        val c = (1f - Math.abs(2f * l - 1f)) * s
+        val hp = h / 60f
+        val x = c * (1f - Math.abs(hp % 2f - 1f))
+        val (r, g, b) = when {
+            hp < 1f -> Triple(c, x, 0f)
+            hp < 2f -> Triple(x, c, 0f)
+            hp < 3f -> Triple(0f, c, x)
+            hp < 4f -> Triple(0f, x, c)
+            hp < 5f -> Triple(x, 0f, c)
+            else -> Triple(c, 0f, x)
+        }
+        val m = l - c / 2f
+        fun ch(v: Float) = ((v + m) * 255f).toInt().coerceIn(0, 255)
+        return Color.argb((a * 255).toInt(), ch(r), ch(g), ch(b))
+    }
+
     private fun text(d: Float, dp: Float, bold: Boolean, color: Int): Paint =
         Paint(Paint.ANTI_ALIAS_FLAG).apply {
             this.color = color
@@ -551,62 +663,114 @@ internal object WidgetSnapshotRenderer {
         val w = canvas.width.toFloat()
         val h = canvas.height.toFloat()
         val C = styledPalette(prefs, dark)
+        val S = prefs.fontScaleF
         val cardR = (if (prefs.isCustomRadius) prefs.cornerRadiusDp.coerceIn(0, 24) else 14) * d
         val pad = 7 * d
         round(canvas, 0f, 0f, w, h, cardR, C.bg)
 
-        val titleP = text(d, 13f, true, C.title)
-        canvas.drawText("今天 · ${s.dayLabel}", pad + 2 * d, pad + titleP.textSize, titleP)
-
-        val rows = s.courses.take(ScheduleWidgetRenderer.MAX_ROWS)
-        if (rows.isEmpty()) {
-            canvas.drawText("今天没有课", pad + 2 * d, h / 2, text(d, 11f, false, C.faint))
-            return
+        // ---- 标题行：左 = 课表名，右 = 「日期 第N周 · 周X」（周X 用强调色） ----
+        val titleP = text(d, 12.5f * S, true, C.title)
+        val titleBase = pad + titleP.textSize
+        canvas.drawText(
+            ellipsize(s.timetableName.ifBlank { "今日课表" }, titleP, w * 0.42f),
+            pad + 2 * d, titleBase, titleP
+        )
+        val dowP = text(d, 9.5f * S, true, C.accent).apply { textAlign = Paint.Align.RIGHT }
+        canvas.drawText(s.dayLabel, w - pad - 2 * d, titleBase, dowP)
+        val headLeft = s.dateLabel + if (s.weekText.isBlank()) "" else "  ${s.weekText}"
+        if (headLeft.isNotBlank()) {
+            val headP = text(d, 9f * S, false, C.dim).apply { textAlign = Paint.Align.RIGHT }
+            val headRight = w - pad - 2 * d - dowP.measureText(s.dayLabel) - 5 * d
+            canvas.drawText(
+                ellipsize(headLeft, headP, headRight - w * 0.45f),
+                headRight, titleBase, headP
+            )
         }
-        val cntP = text(d, 9.5f, false, C.dim).apply { textAlign = Paint.Align.RIGHT }
-        canvas.drawText("${s.courses.size} 门", w - pad - 2 * d, pad + titleP.textSize, cntP)
 
-        val top = pad + 15 * d
-        val gap = 2.5f * d
-        val rowH = ((h - top - pad) - (rows.size - 1) * gap) / rows.size
+        // ---- 双栏：今天 | 明天 ----
+        val colGap = 10 * d
+        val colW = (w - 2 * pad - colGap) / 2
+        val colHeadHeight = 11f * d * S
+        val listTop = titleBase + 5 * d + colHeadHeight + 3 * d
+        val colH = h - pad - listTop
+        if (colH < 12 * d) return   // 异常小尺寸（极端拖拽）时宁可留白也不画叠字
 
-        rows.forEachIndexed { i, c ->
-            val y = top + i * (rowH + gap)
-            val bg = when (c.state) {
-                ScheduleWidgetRenderer.STATE_ONGOING -> C.nowBg
-                ScheduleWidgetRenderer.STATE_PAST -> C.pastBg
-                else -> C.upBg
+        fun drawColumn(x: Float, label: String, labelColor: Int, list: List<ScheduleWidgetRenderer.WidgetCourse>, emptyText: String) {
+            val headP = text(d, 10f * S, true, labelColor)
+            canvas.drawText(label, x, listTop - 4 * d, headP)
+            if (list.isEmpty()) {
+                val eP = text(d, 9.5f * S, false, C.faint)
+                canvas.drawText(emptyText, x, listTop + colH / 2, eP)
+                return
             }
-            round(canvas, pad, y, w - 2 * pad, rowH, minOf(5 * d, cardR), bg)
-            if (c.state == ScheduleWidgetRenderer.STATE_ONGOING) {
-                roundStroke(canvas, pad, y, w - 2 * pad, rowH, minOf(5 * d, cardR), C.accent, d)
+            // 行数自适应：先按最多 3 行摊，行高不足（字放大后放不下两行文字）就减行
+            var count = minOf(list.size, 3)
+            val gap = 3f * d
+            while (count > 1 && (colH - (count - 1) * gap) / count < 26f * d * S) count--
+            val rowH = (colH - (count - 1) * gap) / count
+            list.take(count).forEachIndexed { i, c ->
+                drawCourseRow(canvas, x, listTop + i * (rowH + gap), colW, rowH, c, prefs, dark, C, S, d)
             }
-
-            val fade = if (c.state == ScheduleWidgetRenderer.STATE_PAST) 0.45f else 1f
-            val mainColor = if (c.state == ScheduleWidgetRenderer.STATE_ONGOING) C.accent else C.title
-
-            val timeP = text(d, 10f, true, mainColor).apply { alpha = (255 * fade).toInt() }
-            canvas.drawText(c.startTime, pad + 4 * d, centerY(y, rowH, timeP), timeP)
-
-            // 状态圆点
-            val dotP = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                color = when (c.state) {
-                    ScheduleWidgetRenderer.STATE_ONGOING -> C.accent
-                    ScheduleWidgetRenderer.STATE_PAST -> C.faint
-                    else -> C.dim
-                }
-                alpha = (255 * fade).toInt()
-            }
-            canvas.drawCircle(pad + 33 * d, y + rowH / 2, 2.2f * d, dotP)
-
-            val nameP = text(d, 10f, false, mainColor).apply { alpha = (255 * fade).toInt() }
-            val roomP = text(d, 8.5f, false, C.dim).apply { textAlign = Paint.Align.RIGHT; alpha = (255 * fade).toInt() }
-            val room = if (c.room.isBlank()) "第 ${c.node} 节" else c.room
-            val nameMax = w - 2 * pad - 4 * d - (pad + 38 * d) - (roomP.measureText(room) + 8 * d)
-            canvas.drawText(ellipsize(c.name, nameP, nameMax), pad + 38 * d, centerY(y, rowH, nameP), nameP)
-            canvas.drawText(room, w - pad - 4 * d, centerY(y, rowH, roomP), roomP)
         }
+
+        drawColumn(pad, "今天", C.accent, s.courses, "今天没有课")
+        drawColumn(pad + colW + colGap, "明天 · ${s.tomorrowLabel}".trim(), C.dim, s.tomorrow, "明天没有课")
+
+        // 中缝分隔线
+        val lineP = Paint().apply { color = withAlpha(C.dim, 45); strokeWidth = d }
+        canvas.drawLine(pad + colW + colGap / 2, listTop, pad + colW + colGap / 2, listTop + colH, lineP)
     }
+
+    /** 双栏里的一行课程：左侧色条 + 课程名 + 「教室 · 时间」，颜色随课程色相派生 */
+    private fun drawCourseRow(
+        canvas: Canvas,
+        x: Float,
+        y: Float,
+        rowW: Float,
+        rowH: Float,
+        c: ScheduleWidgetRenderer.WidgetCourse,
+        prefs: WidgetStylePrefs,
+        dark: Boolean,
+        C: Palette,
+        S: Float,
+        d: Float
+    ) {
+        val cp = coursePaint(c, prefs, dark, C)
+        val past = c.state == ScheduleWidgetRenderer.STATE_PAST
+        val rowR = minOf(5 * d, cardRadiusOrDefault(prefs, 14) * d)
+        val rowBg = when (c.state) {
+            ScheduleWidgetRenderer.STATE_ONGOING -> cp.tint
+            ScheduleWidgetRenderer.STATE_PAST -> C.pastBg
+            else -> C.upBg
+        }
+        round(canvas, x, y, rowW, rowH, rowR, rowBg)
+        if (c.state == ScheduleWidgetRenderer.STATE_ONGOING) {
+            roundStroke(canvas, x, y, rowW, rowH, rowR, cp.bar, d)
+        }
+
+        // 左侧色条：这一行的视觉锚点
+        val barW = 2.5f * d
+        round(
+            canvas, x + 3.5f * d, y + 4.5f * d, barW, rowH - 9 * d, barW / 2f,
+            if (past) C.faint else cp.bar
+        )
+
+        val tx = x + 3.5f * d + barW + 4.5f * d
+        val maxW = rowW - (tx - x) - 4 * d
+        val subP = text(d, 8f * S, false, if (past) C.faint else cp.sub)
+        val room = if (c.room.isBlank()) "第 ${c.node} 节" else c.room
+        val subBase = y + rowH - 3 * d
+        val nameP = text(d, 10.5f * S, true, if (past) C.faint else cp.name)
+        val nameBase = subBase - subP.textSize - 2.5f * d
+        canvas.drawText(ellipsize(c.name, nameP, maxW), tx, nameBase, nameP)
+        canvas.drawText(
+            ellipsize("$room · ${c.startTime}", subP, maxW),
+            tx, subBase, subP
+        )
+    }
+
+    private fun cardRadiusOrDefault(prefs: WidgetStylePrefs, defDp: Int): Int =
+        if (prefs.isCustomRadius) prefs.cornerRadiusDp.coerceIn(0, 24) else defDp
 
     private fun drawNext(
         canvas: Canvas,
@@ -618,39 +782,46 @@ internal object WidgetSnapshotRenderer {
         val w = canvas.width.toFloat()
         val h = canvas.height.toFloat()
         val C = styledPalette(prefs, dark)
-        val cardR = (if (prefs.isCustomRadius) prefs.cornerRadiusDp.coerceIn(0, 24) else 14) * d
+        val S = prefs.fontScaleF
+        val cardR = cardRadiusOrDefault(prefs, 14) * d
         val pad = 9 * d
         round(canvas, 0f, 0f, w, h, cardR, C.bg)
 
         val target = s.ongoing ?: s.upcoming
-        val labelP = text(d, 8.5f, false, C.dim)
+        val labelP = text(d, 8.5f * S, false, C.dim)
         canvas.drawText(
             when {
                 target == null -> "今天"
                 s.ongoing != null -> "正在上"
                 else -> "下一节"
             },
-            pad, h * 0.20f, labelP
+            pad, h * 0.18f, labelP
         )
 
         if (target == null) {
-            val emptyP = text(d, 11f, false, C.faint)
-            canvas.drawText(
-                if (s.courses.isEmpty()) "今天没有课" else "今天的课都上完了",
-                pad, h * 0.55f, emptyP
-            )
+            val emptyP = text(d, 11f * S, false, C.faint)
+            val msg = when {
+                s.courses.isEmpty() && s.tomorrow.isEmpty() -> "今天没有课"
+                s.courses.isEmpty() -> "今天没有课 · 明天 ${s.tomorrow.size} 门"
+                else -> "今天的课都上完了"
+            }
+            canvas.drawText(ellipsize(msg, emptyP, w - 2 * pad), pad, h * 0.55f, emptyP)
             return
         }
 
-        val timeP = text(d, 19f, true, C.accent)
-        canvas.drawText(target.startTime, pad, h * 0.52f, timeP)
+        val cp = coursePaint(target, prefs, dark, C)
+        // 顶部色条：颜色随课程（配色模式=单一强调色时就是强调色）
+        round(canvas, pad, h * 0.24f, w - 2 * pad, 3f * d, 1.5f * d, cp.bar)
 
-        val nameP = text(d, 12f, true, C.title)
-        canvas.drawText(ellipsize(target.name, nameP, w - 2 * pad), pad, h * 0.74f, nameP)
+        val timeP = text(d, 18f * S, true, cp.bar)
+        canvas.drawText(target.startTime, pad, h * 0.55f, timeP)
 
-        val roomP = text(d, 8.5f, false, C.dim)
+        val nameP = text(d, 11.5f * S, true, cp.name)
+        canvas.drawText(ellipsize(target.name, nameP, w - 2 * pad), pad, h * 0.75f, nameP)
+
+        val roomP = text(d, 8.5f * S, false, cp.sub)
         val room = if (target.room.isBlank()) "第 ${target.node} 节" else target.room
-        canvas.drawText(ellipsize(room, roomP, w - 2 * pad), pad, h * 0.90f, roomP)
+        canvas.drawText(ellipsize(room, roomP, w - 2 * pad), pad, h * 0.91f, roomP)
     }
 
     private fun drawBar(
@@ -663,31 +834,40 @@ internal object WidgetSnapshotRenderer {
         val w = canvas.width.toFloat()
         val h = canvas.height.toFloat()
         val C = styledPalette(prefs, dark)
-        val cardR = (if (prefs.isCustomRadius) prefs.cornerRadiusDp.coerceIn(0, 24) else 10) * d
+        val S = prefs.fontScaleF
+        val cardR = cardRadiusOrDefault(prefs, 10) * d
         val pad = 8 * d
         round(canvas, 0f, 0f, w, h, cardR, C.bg)
 
         val target = s.ongoing ?: s.upcoming
         if (target == null) {
-            val p = text(d, 10.5f, false, C.dim)
-            val text = if (s.courses.isEmpty()) "今天没有课" else "今天的课已结束"
-            canvas.drawText(text, pad, centerY(0f, h, p), p)
+            val p = text(d, 10.5f * S, false, C.dim)
+            val msg = when {
+                s.courses.isEmpty() && s.tomorrow.isEmpty() -> "今天没有课"
+                s.courses.isEmpty() -> "今天没有课 · 明天 ${s.tomorrow.size} 门"
+                else -> "今天的课已结束"
+            }
+            canvas.drawText(ellipsize(msg, p, w - 2 * pad), pad + 2 * d, centerY(0f, h, p), p)
             return
         }
 
-        val timeP = text(d, 15f, true, C.accent)
-        val timeX = pad + 2 * d
+        val cp = coursePaint(target, prefs, dark, C)
+
+        // 左端竖色条：颜色随课程
+        val barW = 3f * d
+        round(canvas, pad, pad + 2 * d, barW, h - 2 * pad - 4 * d, barW / 2f, cp.bar)
+
+        val timeP = text(d, 14f * S, true, cp.bar)
+        val timeX = pad + barW + 6 * d
         canvas.drawText(target.startTime, timeX, centerY(0f, h, timeP), timeP)
 
-        val nameP = text(d, 10.5f, true, C.title)
+        val nameP = text(d, 10.5f * S, true, cp.name)
         val nameX = timeX + timeP.measureText(target.startTime) + 7 * d
-        val roomP = text(d, 9f, false, C.dim)
+        val roomP = text(d, 9f * S, false, cp.sub)
         val room = if (target.room.isBlank()) "" else " · ${target.room}"
         val nameMax = w - nameX - pad - 2 * d
 
-        // v0.4.3 重影 bug 修复：此前把「课程名+教室」整串画了一遍、教室又单独
-        // 叠画一遍（两种颜色错位叠加 = 用户看到的「字重合/重影」）。现在每个
-        // 文本只画一次：课程名按剩余宽度截断，教室紧跟其后单画。
+        // v0.4.3 重影 bug 修复保持不变：每个文本只画一次
         val roomW = if (room.isEmpty()) 0f else roomP.measureText(room)
         val nameFit = if (room.isNotEmpty() && nameP.measureText(target.name) + roomW <= nameMax) {
             nameMax - roomW

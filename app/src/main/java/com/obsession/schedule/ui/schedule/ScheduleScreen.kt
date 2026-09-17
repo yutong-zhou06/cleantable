@@ -127,6 +127,7 @@ fun ScheduleScreen(
 
     val courses by viewModel.courses.collectAsState()
     val timeSlots by viewModel.timeSlots.collectAsState()
+    val timetable by viewModel.activeTimetable.collectAsState()
     val currentWeek by viewModel.week.collectAsState()
     val config by viewModel.config.collectAsState()
     val message by viewModel.message.collectAsState()
@@ -422,6 +423,7 @@ fun ScheduleScreen(
         TimeSlotEditorDialog(
             initial = timeSlots,
             maxCourseNode = maxNode,
+            timetableId = timetable?.id ?: 0L,
             onDismiss = { timeSlotEditorVisible = false },
             onSave = {
                 viewModel.saveTimeSlots(it)

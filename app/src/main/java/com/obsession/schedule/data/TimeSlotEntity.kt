@@ -135,5 +135,19 @@ data class TimeSlotEntity(
                 endTime = start.plusMinutes(DEFAULT_LESSON_MINUTES).toString()
             )
         }
+
+        /**
+         * v0.6：在 [previousEnd]（前一节的下课时间）之后插入一节的默认起止。
+         * 上课 = 上一节下课 + 课间；下课 = 上课 + 时长。解析失败从默认第 1 节时间起算。
+         */
+        fun suggestAfter(previousEnd: String?): Pair<String, String> {
+            val start = TimeText.parse(previousEnd.orEmpty())?.plusMinutes(DEFAULT_BREAK_MINUTES)
+                ?: TimeText(8, 0)
+            return start.toString() to start.plusMinutes(DEFAULT_LESSON_MINUTES).toString()
+        }
+
+        /** v0.6：把 "HH:mm" 后移 [minutes] 分钟（跨天绕回）；解析失败原样返回 */
+        fun shiftTime(time: String, minutes: Int): String =
+            TimeText.parse(time)?.plusMinutes(minutes)?.toString() ?: time
     }
 }
