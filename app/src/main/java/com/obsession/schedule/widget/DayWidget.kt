@@ -37,6 +37,7 @@ internal object DayWidgetRenderer {
         views.setEmptyView(R.id.day_list, R.id.day_empty)
 
         val adapter = Intent(context, WidgetListService::class.java).apply {
+            action = WidgetFactory.factoryAction(WidgetFactory.KIND_DAY, widgetId)
             putExtra(WidgetFactory.EXTRA_WIDGET_ID, widgetId)
             putExtra(WidgetFactory.EXTRA_KIND, WidgetFactory.KIND_DAY)
         }

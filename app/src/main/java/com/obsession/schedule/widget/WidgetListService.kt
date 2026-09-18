@@ -37,9 +37,12 @@ internal class WidgetFactory(
 
     /** 数据变化（notifyAppWidgetViewDataChanged）与首次绑定时都会走到这里重新查库 */
     override fun onDataSetChanged() {
-        snapshot = WidgetData.load(context)
-        night = WidgetTheme.night(context)
-        colors = WidgetTheme.colors(context)
+        // 刷新失败时保留上一次的快照，避免组件卡在「正在加载」
+        runCatching {
+            snapshot = WidgetData.load(context)
+            night = WidgetTheme.night(context)
+            colors = WidgetTheme.colors(context)
+        }
     }
 
     override fun onDestroy() {}
@@ -149,7 +152,7 @@ internal class WidgetFactory(
         views.textColor(R.id.up_nm, WidgetCards.textColor(card, c.text))
         views.text(R.id.up_tm, card.timeRange)
         views.textColor(R.id.up_tm, WidgetCards.textColor(card, c.textDim))
-        views.text(R.id.up_room, "📍 ${card.roomOrNode}")
+        views.text(R.id.up_room, card.roomOrNode)
         views.textColor(R.id.up_room, WidgetCards.textColor(card, c.textDim))
         return views
     }
@@ -165,7 +168,7 @@ internal class WidgetFactory(
         views.textColor(R.id.cp_nm, WidgetCards.textColor(card, c.text))
         views.text(R.id.cp_tm, card.timeRange)
         views.textColor(R.id.cp_tm, WidgetCards.textColor(card, c.textDim))
-        views.text(R.id.cp_room, "📍 ${card.roomOrNode}")
+        views.text(R.id.cp_room, card.roomOrNode)
         views.textColor(R.id.cp_room, WidgetCards.textColor(card, c.textDim))
         return views
     }
@@ -174,7 +177,8 @@ internal class WidgetFactory(
 
     private fun blank(): RemoteViews = Rv.of(context, R.layout.widget_row_compact)
 
-    override fun getLoadingView(): RemoteViews? = null
+    /** 空白行兜底：不用系统默认的「正在加载…」整行文字 */
+    override fun getLoadingView(): RemoteViews = blank()
 
     override fun getViewTypeCount(): Int = 1
 
@@ -190,6 +194,17 @@ internal class WidgetFactory(
         const val KIND_UP_TODAY = "up_today"
         const val KIND_UP_TOMORROW = "up_tomorrow"
         const val KIND_COMPACT = "compact"
+
+        /**
+         * RemoteAdapter 意图的唯一 action。
+         *
+         * 系统判断两个服务意图是否相同（Intent.filterEquals）时【忽略 extras】——
+         * 四个组件若只靠 extras 区分，启动器可能把多个列表绑到同一个工厂实例上，
+         * 表现为周课表渲染成别的组件的样式、或过一段时间全部卡「正在加载」。
+         * kind + widgetId 进 action 后，每个列表都有自己独立的工厂。
+         */
+        fun factoryAction(kind: String, widgetId: Int): String =
+            "com.obsession.schedule.widget.factory.$kind.$widgetId"
 
         /** 周视图行槽里 7 个格子（等大）各自的控件 id，与 widget_row_week.xml 一一对应 */
         val CELL_BG = intArrayOf(

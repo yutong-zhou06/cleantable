@@ -28,6 +28,7 @@ internal object CompactWidgetRenderer {
         views.setEmptyView(R.id.cp_list, R.id.cp_empty)
 
         val adapter = Intent(context, WidgetListService::class.java).apply {
+            action = WidgetFactory.factoryAction(WidgetFactory.KIND_COMPACT, widgetId)
             putExtra(WidgetFactory.EXTRA_WIDGET_ID, widgetId)
             putExtra(WidgetFactory.EXTRA_KIND, WidgetFactory.KIND_COMPACT)
         }

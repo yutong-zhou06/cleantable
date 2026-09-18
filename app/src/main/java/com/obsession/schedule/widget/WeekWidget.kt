@@ -53,6 +53,7 @@ internal object WeekWidgetRenderer {
 
         // 列表适配器
         val adapter = Intent(context, WidgetListService::class.java).apply {
+            action = WidgetFactory.factoryAction(WidgetFactory.KIND_WEEK, widgetId)
             putExtra(WidgetFactory.EXTRA_WIDGET_ID, widgetId)
             putExtra(WidgetFactory.EXTRA_KIND, WidgetFactory.KIND_WEEK)
         }

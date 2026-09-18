@@ -31,6 +31,7 @@ internal object UpcomingWidgetRenderer {
 
         // 今天栏
         val today = Intent(context, WidgetListService::class.java).apply {
+            action = WidgetFactory.factoryAction(WidgetFactory.KIND_UP_TODAY, widgetId)
             putExtra(WidgetFactory.EXTRA_WIDGET_ID, widgetId)
             putExtra(WidgetFactory.EXTRA_KIND, WidgetFactory.KIND_UP_TODAY)
         }
@@ -40,6 +41,7 @@ internal object UpcomingWidgetRenderer {
 
         // 明天栏
         val tomorrow = Intent(context, WidgetListService::class.java).apply {
+            action = WidgetFactory.factoryAction(WidgetFactory.KIND_UP_TOMORROW, widgetId)
             putExtra(WidgetFactory.EXTRA_WIDGET_ID, widgetId)
             putExtra(WidgetFactory.EXTRA_KIND, WidgetFactory.KIND_UP_TOMORROW)
         }

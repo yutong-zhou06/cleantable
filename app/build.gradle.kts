@@ -14,8 +14,8 @@ android {
         applicationId = "com.obsession.schedule"
         minSdk = 24
         targetSdk = 34
-        versionCode = 14
-        versionName = "0.7.0-demo3"
+        versionCode = 15
+        versionName = "0.7.0-demo4"
 
         vectorDrawables { useSupportLibrary = true }
     }
