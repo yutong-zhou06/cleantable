@@ -124,6 +124,12 @@
                 android:resource="@xml/widget_compact_info" />
         </receiver>
 
+        <!-- 小组件 ListView 的行工厂（系统按需拉取，BIND_REMOTEVIEWS 权限保护） -->
+        <service
+            android:name=".widget.WidgetListService"
+            android:exported="false"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
+
         <!-- 零点兜底刷新（配 DATE_CHANGED 广播）。显式 Intent 触发，无需 filter -->
         <receiver
             android:name=".MidnightRefreshReceiver"

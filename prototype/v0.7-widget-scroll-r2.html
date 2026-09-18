@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>v0.7-R6 小组件滑动 Demo · 字号最大 · 浅/深两主题</title>
+<style>
+  :root{
+    --wall1:#2b3350; --wall2:#4b3f63; --wall3:#1f2740;
+    --wbg:rgba(18,20,30,.62);
+    --txt:#f2f3f7; --dim:rgba(242,243,247,.62); --faint:rgba(242,243,247,.38);
+    --accent:#6fb3ff; --divider:rgba(255,255,255,.10);
+    --chip:rgba(255,255,255,.08); --line:rgba(255,255,255,.14);
+  }
+  body.theme-light{
+    --wall1:#dfe6f2; --wall2:#e8ddef; --wall3:#d3ddf0;
+    --wbg:rgba(252,252,254,.88);
+    --txt:#1c1f2a; --dim:rgba(28,31,42,.60); --faint:rgba(28,31,42,.38);
+    --accent:#2f7bd9; --divider:rgba(0,0,0,.10);
+    --chip:rgba(0,0,0,.06); --line:rgba(0,0,0,.12);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{margin:0;font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:var(--txt);
+       background:linear-gradient(160deg,var(--wall1),var(--wall2) 55%,var(--wall3));min-height:100vh}
+  .ctrl{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:10px 20px;align-items:center;
+        padding:10px 16px;background:rgba(0,0,0,.35);backdrop-filter:blur(10px);font-size:12.5px}
+  body.theme-light .ctrl{background:rgba(255,255,255,.55)}
+  .ctrl b{font-size:13px;margin-right:6px}
+  .ctrl label{display:flex;align-items:center;gap:5px;color:var(--dim)}
+  input[type=range]{accent-color:var(--accent)}
+  .wall{display:flex;flex-wrap:wrap;gap:28px 34px;padding:34px;align-items:flex-start;justify-content:center}
+  .cell{display:flex;flex-direction:column;gap:6px}
+  .cap{font-size:11.5px;color:var(--dim);width:100%;text-align:center}
+  .cap em{font-style:normal;color:var(--accent)}
+
+  .wg{position:relative;border-radius:16px;background:var(--wbg);backdrop-filter:blur(18px);
+      box-shadow:0 10px 30px rgba(0,0,0,.35);overflow:hidden;border:1px solid rgba(255,255,255,.06);
+      display:flex;flex-direction:column}
+  body.theme-light .wg{border-color:rgba(0,0,0,.06);box-shadow:0 10px 26px rgba(40,50,80,.18)}
+  .wg4x2{width:400px;height:200px}
+  .wg2x2{width:190px;height:190px}
+
+  .hd{display:flex;justify-content:space-between;align-items:center;padding:9px 13px 4px;flex:none}
+  .hd .l1{font-size:17px;font-weight:800}
+  .hd .l2{font-size:11px;color:var(--dim);margin-top:1px}
+  .hd .rt{font-size:12px;color:var(--dim)}
+  .ic{width:24px;height:24px;border-radius:12px;background:var(--chip);display:flex;
+      align-items:center;justify-content:center;font-size:12px;color:var(--dim);margin-left:6px}
+
+  /* 滚动区：所有父容器统一 flex 纵排，scr 用 min-height:0 撑满剩余空间 */
+  .col{flex:1;display:flex;flex-direction:column;min-height:0;position:relative}
+  .scr{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;position:relative}
+  .scr::-webkit-scrollbar{display:none}
+  .fade{position:absolute;left:0;right:0;bottom:0;height:18px;pointer-events:none;z-index:2;
+        background:linear-gradient(transparent,var(--wbg) 135%);opacity:0;transition:opacity .2s}
+  .fade.on{opacity:1}
+  .hint{position:absolute;right:6px;bottom:4px;font-size:9px;color:var(--faint);
+        pointer-events:none;z-index:2;transition:opacity .3s;letter-spacing:.5px}
+
+  /* ===== 周视图 4×2：等格行槽（字号=最大档 135%）===== */
+  .wk-headrow{display:flex;padding:0 13px;flex:none}
+  .wk-headrow .d{flex:1;text-align:center;font-size:11px;font-weight:700;color:var(--dim);padding:2px 0}
+  .wk-headrow .d.today{color:var(--accent)}
+  .wk-headrow .d.today::after{content:"";display:block;width:16px;height:2px;background:var(--accent);
+      border-radius:1px;margin:2px auto 0}
+  .wk-body{flex:1;display:flex;padding:0 13px;min-height:0}
+  .wk-col{flex:1;display:flex;flex-direction:column;min-width:0;position:relative}
+  .wk-col + .wk-col{border-left:1px solid var(--divider)}
+  .wk-col .scr{margin:3px 3px 7px}
+  .wk-row{height:56px;display:flex;gap:4px;margin-bottom:4px}
+  .ccell{flex:1;border-radius:10px;padding:4px 6px;display:flex;flex-direction:column;justify-content:center;
+         min-width:0}
+  .ccell .t{font-size:9px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ccell .n{font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:1px 0}
+  .ccell .r{font-size:9px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .ccell.past{opacity:.4}
+  .ccell.ongoing{outline:2px solid #fff;outline-offset:-2px}
+  .cempty{flex:1;border-radius:10px;border:1px dashed var(--divider);display:flex;align-items:center;
+          justify-content:center;font-size:9px;color:var(--faint)}
+
+  /* ===== 日视图 4×2 ===== */
+  .day-body{flex:1;padding:0 13px 9px;min-height:0;position:relative}
+  .drow{display:flex;gap:8px;align-items:stretch;margin-bottom:6px}
+  .drow .bar{width:4px;border-radius:2px;flex:none}
+  .drow .mid{flex:1;min-width:0;padding:6px 8px;border-radius:10px}
+  .drow .r1{display:flex;gap:7px;align-items:baseline}
+  .drow .nt{font-size:10px;color:var(--dim);flex:none}
+  .drow .nm{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .drow .tm{font-size:10px;color:var(--dim);flex:none;margin-left:auto}
+  .drow .r2{display:flex;gap:6px;font-size:10px;color:var(--dim);margin-top:2px}
+  .drow .r2 span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .drow.past{opacity:.4}
+  .drow.ongoing .mid{outline:2px solid var(--accent);outline-offset:-2px}
+  .emptyline{text-align:center;color:var(--faint);font-size:13px;padding-top:44px}
+
+  /* ===== 近日课程 4×2 ===== */
+  .up-body{flex:1;display:flex;padding:0 13px 9px;min-height:0}
+  .up-col{flex:1;display:flex;flex-direction:column;min-width:0;position:relative}
+  .up-col.left{padding-right:9px}
+  .up-col.right{padding-left:9px}
+  .up-div{width:1px;background:var(--divider);margin:3px 0 9px;flex:none}
+  .up-t{font-size:12px;font-weight:700;margin:2px 0 4px;flex:none}
+  .up-t.today{color:var(--accent)}
+  .urow{display:flex;gap:6px;margin-bottom:5px;align-items:stretch}
+  .urow .bar{width:3px;border-radius:2px;flex:none}
+  .urow .tx{flex:1;min-width:0}
+  .urow .n{font-size:12.5px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .urow .n .tm{font-size:9.5px;font-weight:400;color:var(--dim);margin-left:4px}
+  .urow .s{font-size:10px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .urow.past{opacity:.4}
+
+  /* ===== 2×2 ===== */
+  .cp-hd{display:flex;justify-content:space-between;padding:9px 11px 3px;font-size:11px;flex:none}
+  .cp-hd .l{font-weight:800}
+  .cp-hd .r{color:var(--dim)}
+  .cp-body{flex:1;padding:0 11px 9px;min-height:0;position:relative}
+  .crow{display:flex;gap:6px;align-items:stretch;margin-bottom:6px}
+  .crow .bar{width:3px;border-radius:2px;flex:none}
+  .crow .tx{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:1px}
+  .crow .n{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .crow .n .tm{font-size:10px;font-weight:400;color:var(--dim);margin-left:5px}
+  .crow .s{font-size:10.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .crow.past{opacity:.4}
+
+  .note{max-width:900px;margin:6px auto 40px;padding:14px 18px;border-radius:12px;
+        background:rgba(0,0,0,.28);font-size:12.5px;line-height:1.8;color:var(--dim)}
+  body.theme-light .note{background:rgba(255,255,255,.55)}
+  .note b{color:var(--txt)}
+</style>
+</head>
+<body>
+
+<div class="ctrl">
+  <b>v0.7-R6 · 全组件可滑动 · 字号最大档</b>
+  <label><input type="radio" name="th" value="" checked> 深色</label>
+  <label><input type="radio" name="th" value="theme-light"> 浅色</label>
+  <label>模拟时间 <input type="range" id="time" min="420" max="1320" step="5" style="width:150px">
+    <span id="timeTxt" style="width:40px"></span></label>
+  <label><input type="checkbox" id="follow" checked> 跟随真实时间</label>
+</div>
+
+<div class="wall">
+  <div class="cell">
+    <div class="wg wg4x2" id="wWeek"></div>
+    <div class="cap">周视图 4×2 · 格子<em>全部等大</em>（56px），每屏固定 2 行，整表按行槽滚动</div>
+  </div>
+  <div class="cell">
+    <div class="wg wg4x2" id="wDay"></div>
+    <div class="cap">日视图 4×2 · 课程名后附完整上课时间</div>
+  </div>
+  <div class="cell">
+    <div class="wg wg4x2" id="wUp"></div>
+    <div class="cap">近日课程 4×2 · 今天｜明天两栏各自独立滚动</div>
+  </div>
+  <div class="cell">
+    <div class="wg wg2x2" id="wCp"></div>
+    <div class="cap">今日课程 2×2 · 课程名后附上课时间</div>
+  </div>
+</div>
+
+<div class="note">
+  <b>已按你敲定的规格固化</b>：主题只有<b>浅色 / 深色</b>（5 套内置主题、背景色/透明度/圆角等样式自定义全部移除）；
+  课程配色按<b>课程区分</b>（同一门课全局同色）；字号<b>固定最大档</b>（135%，不再提供滑杆）；
+  简洁条确认去除；其余保持默认。真机实现时设置页的「小组件样式」整卡随之精简。
+</div>
+
+<script>
+/* ================= 数据 ================= */
+const NODE_T = [[8,0],[8,55],[10,0],[10,55],[14,0],[14,55],[16,0],[16,55],[19,0],[19,55]];
+const NODE_E = 45;
+const COURSES = [
+  {d:5,n:1,len:2,name:'高等数学',       room:'教一 302',  t:'王老师', c:'#f0a3b5'},
+  {d:5,n:3,len:1,name:'大学英语',       room:'外语楼 210',t:'李老师', c:'#8fc7a2'},
+  {d:5,n:4,len:2,name:'数据结构',       room:'机房 3-501',t:'张老师', c:'#7fb3e8'},
+  {d:5,n:6,len:1,name:'大学物理',       room:'教二 108',  t:'陈老师', c:'#c9a3e0'},
+  {d:5,n:8,len:1,name:'体育',           room:'体育馆',    t:'刘老师', c:'#f2c98a'},
+  {d:5,n:9,len:2,name:'算法设计与分析', room:'教三 405',  t:'赵老师', c:'#9db8f2'},
+  {d:1,n:1,len:2,name:'高等数学',       room:'教一 302',  t:'王老师', c:'#f0a3b5'},
+  {d:1,n:3,len:2,name:'数据结构',       room:'机房 3-501',t:'张老师', c:'#7fb3e8'},
+  {d:1,n:6,len:1,name:'线性代数',       room:'教二 205',  t:'孙老师', c:'#e8a08f'},
+  {d:2,n:2,len:1,name:'大学英语',       room:'外语楼 210',t:'李老师', c:'#8fc7a2'},
+  {d:2,n:5,len:2,name:'算法设计与分析', room:'教三 405',  t:'赵老师', c:'#9db8f2'},
+  {d:3,n:1,len:1,name:'大学物理',       room:'教二 108',  t:'陈老师', c:'#c9a3e0'},
+  {d:3,n:3,len:2,name:'操作系统',       room:'机房 3-502',t:'周老师', c:'#a2d8c8'},
+  {d:3,n:7,len:1,name:'体育',           room:'体育馆',    t:'刘老师', c:'#f2c98a'},
+  {d:4,n:2,len:2,name:'高等数学',       room:'教一 302',  t:'王老师', c:'#f0a3b5'},
+  {d:4,n:6,len:1,name:'大学英语',       room:'外语楼 210',t:'李老师', c:'#8fc7a2'},
+  {d:6,n:2,len:1,name:'数据结构实验',   room:'机房 3-501',t:'张老师', c:'#7fb3e8'},
+  {d:6,n:4,len:2,name:'操作系统',       room:'机房 3-502',t:'周老师', c:'#a2d8c8'},
+  {d:7,n:3,len:1,name:'线性代数',       room:'教二 205',  t:'孙老师', c:'#e8a08f'},
+];
+const WEEKDAY = ['周一','周二','周三','周四','周五','周六','周日'];
+const TODAY = 5;
+
+function courseStart(c){ const t=NODE_T[c.n-1]; return t[0]*60+t[1]; }
+function courseEnd(c){ return courseStart(c) + NODE_E + (c.len-1)*55; }
+function nodeTime(n){ const t=NODE_T[n-1]; return `${t[0]}:${String(t[1]).padStart(2,'0')}`; }
+function fmt(min){ return `${Math.floor(min/60)}:${String(min%60).padStart(2,'0')}`; }
+function range(c){ return `${nodeTime(c.n)}-${fmt(courseEnd(c))}`; }
+function coursesOfDay(d){ return COURSES.filter(c=>c.d===d).sort((a,b)=>a.n-b.n); }
+function darken(hex,maxL){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  const L=(0.299*r+0.587*g+0.114*b)/255;
+  if(L<=maxL) return hex;
+  const k=maxL/L;
+  return `rgb(${Math.round(r*k)},${Math.round(g*k)},${Math.round(b*k)})`;
+}
+function state(c,now){
+  const s=courseStart(c), e=courseEnd(c);
+  return now<s ? 'up' : (now<e ? 'on' : 'past');
+}
+
+/* ================= 工具 ================= */
+function el(html){ const d=document.createElement('div'); d.innerHTML=html.trim(); return d.firstChild; }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+
+let dragging=false;
+function dragScroll(scr){
+  let down=null, v=0, lastY=0, lastT=0, raf=null;
+  scr.style.cursor='grab';
+  scr.addEventListener('pointerdown',e=>{
+    if(e.button!==0) return;
+    down={y:e.clientY, top:scr.scrollTop};
+    lastY=e.clientY; lastT=performance.now(); v=0;
+    dragging=true;
+    try{ scr.setPointerCapture(e.pointerId); }catch(_){}
+    scr.style.cursor='grabbing';
+    cancelAnimationFrame(raf);
+  });
+  scr.addEventListener('pointermove',e=>{
+    if(!down) return;
+    scr.scrollTop = down.top - (e.clientY-down.y);
+    const now=performance.now();
+    if(now-lastT>0) v=(lastY-e.clientY)/(now-lastT);
+    lastY=e.clientY; lastT=now;
+  });
+  const up=()=>{
+    if(!down) return;
+    down=null; dragging=false;
+    scr.style.cursor='grab';
+    let vv=v*16;
+    const step=()=>{ vv*=0.93; scr.scrollTop+=vv; if(Math.abs(vv)>0.4) raf=requestAnimationFrame(step); };
+    if(Math.abs(vv)>0.4) raf=requestAnimationFrame(step);
+  };
+  scr.addEventListener('pointerup',up);
+  scr.addEventListener('pointercancel',up);
+  scr.addEventListener('pointerleave',()=>{ if(down){down=null;dragging=false;scr.style.cursor='grab';} });
+}
+function attachFade(scr){
+  const wrap=scr.parentElement;
+  const fade=el(`<div class="fade"></div>`);
+  const hint=el(`<div class="hint">▾ 可滑动</div>`);
+  wrap.appendChild(fade); wrap.appendChild(hint);
+  const upd=()=>{
+    const can=scr.scrollHeight - scr.clientHeight > 4;
+    fade.classList.toggle('on', can && scr.scrollTop+scr.clientHeight < scr.scrollHeight-2);
+    hint.style.opacity = (can && scr.scrollTop<4) ? 1 : 0;
+  };
+  scr.addEventListener('scroll',upd);
+  setTimeout(upd,0);
+}
+
+/* ================= 渲染 ================= */
+const $=id=>document.getElementById(id);
+
+function renderWeek(now){
+  const root=$('wWeek'); root.innerHTML='';
+  root.appendChild(el(`<div class="hd"><div><div class="l1">9.18</div>
+    <div class="l2">大二上 | 第4周 ${WEEKDAY[TODAY-1]}</div></div>
+    <div class="rt" style="display:flex"><div class="ic">⚙</div><div class="ic">↗</div></div></div>`));
+  root.appendChild(el(`<div class="wk-headrow">${WEEKDAY.map((w,i)=>
+    `<div class="d${i===TODAY-1?' today':''}">${w}</div>`).join('')}</div>`));
+  const body=el(`<div class="wk-body"></div>`);
+  const days=[1,2,3,4,5,6,7].map(coursesOfDay);
+  days.forEach((list,di)=>{
+    const col=el(`<div class="wk-col"><div class="scr"></div></div>`);
+    const scr=col.firstChild;
+    list.forEach(c=>{
+      const st=state(c,now);
+      scr.appendChild(el(`<div class="wk-row"><div class="ccell ${st==='past'?'past':''} ${st==='on'?'ongoing':''}"
+        style="background:${darken(c.c,.42)};color:#fff">
+        <div class="t">${range(c)}</div>
+        <div class="n">${esc(c.name)}</div>
+        <div class="r">${esc(c.room)}</div></div></div>`));
+    });
+    // 补虚线空格，保证每列高度一致（滚动范围一致）
+    const maxN=Math.max(...days.map(a=>a.length));
+    for(let i=list.length;i<maxN;i++){
+      scr.appendChild(el(`<div class="wk-row"><div class="cempty">—</div></div>`));
+    }
+    body.appendChild(col);
+    dragScroll(scr); attachFade(scr);
+  });
+  root.appendChild(body);
+}
+
+function renderDay(now){
+  const root=$('wDay'); root.innerHTML='';
+  root.appendChild(el(`<div class="hd"><div><div class="l1">9.18</div>
+    <div class="l2">大二上 | 第4周 ${WEEKDAY[TODAY-1]}</div></div>
+    <div class="rt" style="display:flex"><div class="ic">☰</div><div class="ic">↗</div></div></div>`));
+  const list=coursesOfDay(TODAY);
+  const body=el(`<div class="day-body"><div class="scr"></div></div>`);
+  const scr=body.firstChild;
+  if(!list.length) scr.appendChild(el(`<div class="emptyline">今天没有课，好好休息 🌙</div>`));
+  list.forEach(c=>{
+    const st=state(c,now);
+    scr.appendChild(el(`<div class="drow ${st==='past'?'past':''} ${st==='on'?'ongoing':''}">
+      <div class="bar" style="background:${darken(c.c,.42)}"></div>
+      <div class="mid" style="background:${darken(c.c,.20)}">
+        <div class="r1"><span class="nt">第${c.n}节</span>
+          <span class="nm">${esc(c.name)}</span>
+          <span class="tm">${range(c)}</span></div>
+        <div class="r2"><span>📍 ${esc(c.room)}</span><span>👤 ${esc(c.t)}</span></div>
+      </div></div>`));
+  });
+  root.appendChild(body);
+  dragScroll(scr); attachFade(scr);
+}
+
+function renderUp(now){
+  const root=$('wUp'); root.innerHTML='';
+  root.appendChild(el(`<div class="hd"><div><div class="l1">大二上</div></div>
+    <div class="rt">9.18 第4周 ${WEEKDAY[TODAY-1]}</div></div>`));
+  const body=el(`<div class="up-body"></div>`);
+  const mk=(title,cls,list,label)=>{
+    const col=el(`<div class="up-col ${cls}"><div class="up-t ${cls==='left'?'today':''}">${title}</div>
+      <div class="scr"></div></div>`);
+    const scr=col.querySelector('.scr');
+    if(!list.length) scr.appendChild(el(`<div class="emptyline" style="padding-top:26px">${label}没有课</div>`));
+    list.forEach(c=>{
+      const st=state(c,now);
+      scr.appendChild(el(`<div class="urow ${st==='past'?'past':''}">
+        <div class="bar" style="background:${darken(c.c,.42)}"></div>
+        <div class="tx"><div class="n">${esc(c.name)}<span class="tm">${range(c)}</span></div>
+          <div class="s">📍 ${esc(c.room)}</div>
+        </div></div>`));
+    });
+    body.appendChild(col);
+    dragScroll(scr); attachFade(scr);
+  };
+  mk('今天','left',coursesOfDay(TODAY),'今天');
+  body.appendChild(el(`<div class="up-div"></div>`));
+  mk(`明天 · ${WEEKDAY[TODAY%7]}`,'right',coursesOfDay(TODAY%7+1),'明天');
+  root.appendChild(body);
+}
+
+function renderCp(now){
+  const root=$('wCp'); root.innerHTML='';
+  root.appendChild(el(`<div class="cp-hd"><span class="l">大二上</span>
+    <span class="r">9.18 ${WEEKDAY[TODAY-1]}</span></div>`));
+  const list=coursesOfDay(TODAY);
+  const body=el(`<div class="cp-body"><div class="scr"></div></div>`);
+  const scr=body.firstChild;
+  if(!list.length) scr.appendChild(el(`<div class="emptyline" style="padding-top:30px">今天没有课</div>`));
+  list.forEach(c=>{
+    const st=state(c,now);
+    scr.appendChild(el(`<div class="crow ${st==='past'?'past':''}">
+      <div class="bar" style="background:${darken(c.c,.42)}"></div>
+      <div class="tx"><div class="n">${esc(c.name)}<span class="tm">${range(c)}</span></div>
+        <div class="s">📍 ${esc(c.room)}</div></div></div>`));
+  });
+  root.appendChild(body);
+  dragScroll(scr); attachFade(scr);
+}
+
+/* ================= 时钟：只在时间变化时重绘，且保留滚动位置 ================= */
+let nowMin=-1;
+function renderAll(){
+  // 记录滚动位置（重建后按顺序恢复）
+  const saved=[...document.querySelectorAll('.scr')].map(s=>s.scrollTop);
+  renderWeek(nowMin); renderDay(nowMin); renderUp(nowMin); renderCp(nowMin);
+  [...document.querySelectorAll('.scr')].forEach((s,i)=>{ if(saved[i]) s.scrollTop=saved[i]; });
+}
+function tick(){
+  if($('follow').checked){
+    const d=new Date(); const m=d.getHours()*60+d.getMinutes();
+    $('time').value=m;
+    if(m!==nowMin && !dragging){ nowMin=m; renderAll(); }
+  } else {
+    const m=+$('time').value;
+    if(m!==nowMin && !dragging){ nowMin=m; renderAll(); }
+  }
+  $('timeTxt').textContent=fmt(nowMin);
+}
+document.querySelectorAll('input[name=th]').forEach(r=>{
+  r.addEventListener('change',()=>{ document.body.className=r.value; renderAll(); });
+});
+$('time').addEventListener('input',()=>{ $('follow').checked=false; tick(); });
+$('follow').addEventListener('change',()=>{ nowMin=-1; tick(); });
+const d0=new Date(); nowMin=d0.getHours()*60+d0.getMinutes(); $('time').value=nowMin;
+renderAll();
+setInterval(tick,1000);
+</script>
+</body>
+</html>

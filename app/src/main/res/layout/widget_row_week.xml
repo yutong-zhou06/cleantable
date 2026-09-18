@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  周视图行槽：一行 = 周一到周日各自的第 N 门课，7 格等大（weight=1）。
+  字号已按冻结规格固定为最大档，运行时只填文本/颜色/可见性。
+  控件 id 与 WidgetFactory.CELL_* 数组一一对应（wk_c{1..7}_{bg,st,em,t,n,r}）。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="42dp"
+    android:orientation="horizontal"
+    android:paddingHorizontal="10dp">
+
+    <!-- ========== 7 个等大格子，结构完全相同 ========== -->
+
+    <!-- 格子 1 -->
+    <FrameLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_margin="1dp">
+        <ImageView
+            android:id="@+id/wk_c1_bg"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/w_card_shape" />
+        <ImageView
+            android:id="@+id/wk_c1_st"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/w_stroke_shape"
+            android:visibility="gone" />
+        <ImageView
+            android:id="@+id/wk_c1_em"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/w_cell_empty"
+            android:visibility="gone" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="4dp">
+            <TextView
+                android:id="@+id/wk_c1_t"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="8sp"
+                android:textColor="@color/w_text_dim"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:visibility="gone" />
+            <TextView
+                android:id="@+id/wk_c1_n"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="10.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/w_text"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:visibility="gone" />
+            <TextView
+                android:id="@+id/wk_c1_r"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="8sp"
+                android:textColor="@color/w_text_dim"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:visibility="gone" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- 格子 2 -->
+    <FrameLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_margin="1dp">
+        <ImageView android:id="@+id/wk_c2_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/w_card_shape" />
+        <ImageView android:id="@+id/wk_c2_st" android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/w_stroke_shape" android:visibility="gone" />
+        <ImageView android:id="@+id/wk_c2_em" android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/w_cell_empty" android:visibility="gone" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center_vertical" android:paddingHorizontal="4dp">
+            <TextView android:id="@+id/wk_c2_t" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="8sp" android:textColor="@color/w_text_dim" android:maxLines="1" android:ellipsize="end" android:visibility="gone" />
+            <TextView android:id="@+id/wk_c2_n" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="10.5sp" android:textStyle="bold" android:textColor="@color/w_text" android:maxLines="1" android:ellipsize="end" android:visibility="gone" />
+            <TextView android:id="@+id/wk_c2_r" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="8sp" android:textColor="@color/w_text_dim" android:maxLines="1" android:ellipsize="end" android:visibility="gone" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- 格子 3 -->
+    <FrameLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_margin="1dp">
+        <ImageView android:id="@+id/wk_c3_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/w_card_shape" />
+        <ImageView android:id="@+id/wk_c3_st" android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/w_stroke_shape" android:visibility="gone" />
+        <ImageView android:id="@+id/wk_c3_em" android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/w_cell_empty" android:visibility="gone" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center_vertical" android:paddingHorizontal="4dp">
+            <TextView android:id="@+id/wk_c3_t" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="8sp" android:textColor="@color/w_text_dim" android:maxLines="1" android:ellipsize="end" android:visibility="gone" />
+            <TextView android:id="@+id/wk_c3_n" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="10.5sp" android:textStyle="bold" android:textColor="@color/w_text" android:maxLines="1" android:ellipsize="end" android:visibility="gone" />
+            <TextView android:id="@+id/wk_c3_r" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="8sp" android:textColor="@color/w_text_dim" android:maxLines="1" android:ellipsize="end" android:visibility="gone" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- 格子 4 -->
+    <FrameLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_margin="1dp">
+        <ImageView android:id="@+id/wk_c4_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/w_card_shape" />
+        <ImageView android:id="@+id/wk_c4_st" android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/w_stroke_shape" android:visibility="gone" />
+        <ImageView android:id="@+id/wk_c4_em" android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/w_cell_empty" android:visibility="gone" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center_vertical" android:paddingHorizontal="4dp">
+            <TextView android:id="@+id/wk_c4_t" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="8sp" android:textColor="@color/w_text_dim" android:maxLines="1" android:ellipsize="end" android:visibility="gone" />
+            <TextView android:id="@+id/wk_c4_n" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="10.5sp" android:textStyle="bold" android:textColor="@color/w_text" android:maxLines="1" android:ellipsize="end" android:visibility="gone" />
+            <TextView android:id="@+id/wk_c4_r" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="8sp" android:textColor="@color/w_text_dim" android:maxLines="1" android:ellipsize="end" android:visibility="gone" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- 格子 5 -->
+    <FrameLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_margin="1dp">
+        <ImageView android:id="@+id/wk_c5_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/w_card_shape" />
+        <ImageView android:id="@+id/wk_c5_st" android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/w_stroke_shape" android:visibility="gone" />
+        <ImageView android:id="@+id/wk_c5_em" android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/w_cell_empty" android:visibility="gone" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center_vertical" android:paddingHorizontal="4dp">
+            <TextView android:id="@+id/wk_c5_t" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="8sp" android:textColor="@color/w_text_dim" android:maxLines="1" android:ellipsize="end" android:visibility="gone" />
+            <TextView android:id="@+id/wk_c5_n" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="10.5sp" android:textStyle="bold" android:textColor="@color/w_text" android:maxLines="1" android:ellipsize="end" android:visibility="gone" />
+            <TextView android:id="@+id/wk_c5_r" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="8sp" android:textColor="@color/w_text_dim" android:maxLines="1" android:ellipsize="end" android:visibility="gone" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- 格子 6 -->
+    <FrameLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_margin="1dp">
+        <ImageView android:id="@+id/wk_c6_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/w_card_shape" />
+        <ImageView android:id="@+id/wk_c6_st" android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/w_stroke_shape" android:visibility="gone" />
+        <ImageView android:id="@+id/wk_c6_em" android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/w_cell_empty" android:visibility="gone" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center_vertical" android:paddingHorizontal="4dp">
+            <TextView android:id="@+id/wk_c6_t" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="8sp" android:textColor="@color/w_text_dim" android:maxLines="1" android:ellipsize="end" android:visibility="gone" />
+            <TextView android:id="@+id/wk_c6_n" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="10.5sp" android:textStyle="bold" android:textColor="@color/w_text" android:maxLines="1" android:ellipsize="end" android:visibility="gone" />
+            <TextView android:id="@+id/wk_c6_r" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="8sp" android:textColor="@color/w_text_dim" android:maxLines="1" android:ellipsize="end" android:visibility="gone" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- 格子 7 -->
+    <FrameLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:layout_margin="1dp">
+        <ImageView android:id="@+id/wk_c7_bg" android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/w_card_shape" />
+        <ImageView android:id="@+id/wk_c7_st" android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/w_stroke_shape" android:visibility="gone" />
+        <ImageView android:id="@+id/wk_c7_em" android:layout_width="match_parent" android:layout_height="match_parent" android:src="@drawable/w_cell_empty" android:visibility="gone" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center_vertical" android:paddingHorizontal="4dp">
+            <TextView android:id="@+id/wk_c7_t" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="8sp" android:textColor="@color/w_text_dim" android:maxLines="1" android:ellipsize="end" android:visibility="gone" />
+            <TextView android:id="@+id/wk_c7_n" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="10.5sp" android:textStyle="bold" android:textColor="@color/w_text" android:maxLines="1" android:ellipsize="end" android:visibility="gone" />
+            <TextView android:id="@+id/wk_c7_r" android:layout_width="match_parent" android:layout_height="wrap_content" android:textSize="8sp" android:textColor="@color/w_text_dim" android:maxLines="1" android:ellipsize="end" android:visibility="gone" />
+        </LinearLayout>
+    </FrameLayout>
+</LinearLayout>

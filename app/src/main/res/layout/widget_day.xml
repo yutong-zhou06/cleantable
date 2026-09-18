@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 日视图 4×2：头部 + 今日课程列表（上下滚动） -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/w_root_bg"
     android:orientation="vertical"
-    android:padding="8dp">
+    android:background="@drawable/w_root_bg">
 
-    <!-- 头部：左 日期+学期信息，右 筛选/跳转 两个图标按钮 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:paddingHorizontal="12dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="4dp">
 
         <LinearLayout
             android:layout_width="0dp"
@@ -22,664 +24,64 @@
 
             <TextView
                 android:id="@+id/day_date"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:ellipsize="end"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/w_text"
                 android:maxLines="1"
-                android:textStyle="bold" />
+                android:ellipsize="end" />
 
             <TextView
-                android:id="@+id/day_meta"
-                android:layout_width="wrap_content"
+                android:id="@+id/day_sub"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="1" />
+                android:textSize="9.5sp"
+                android:textColor="@color/w_text_dim"
+                android:maxLines="1"
+                android:ellipsize="end" />
         </LinearLayout>
 
-        <FrameLayout
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:background="@drawable/w_chip_bg">
+        <ImageView
+            android:id="@+id/day_ic_set"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="8dp"
+            android:padding="2dp"
+            android:src="@drawable/ic_w_filter" />
 
-            <ImageView
-                android:id="@+id/day_filter"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_gravity="center"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_w_filter" />
-        </FrameLayout>
-
-        <FrameLayout
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+        <ImageView
+            android:id="@+id/day_ic_open"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_marginStart="6dp"
-            android:background="@drawable/w_chip_bg">
-
-            <ImageView
-                android:id="@+id/day_open"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_gravity="center"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_w_open" />
-        </FrameLayout>
+            android:padding="2dp"
+            android:src="@drawable/ic_w_open" />
     </LinearLayout>
 
-    <!-- 无课时提示（与课程行互斥） -->
-    <TextView
-        android:id="@+id/day_empty"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:ellipsize="end"
-        android:gravity="center"
-        android:maxLines="1" />
-
-    <!-- 课程主体：预先声明固定 6 行，不足时整行 gone -->
     <FrameLayout
-        android:id="@+id/day_row_1"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="2dp"
         android:layout_weight="1">
 
-        <ImageView
-            android:id="@+id/day_bg_1"
+        <ListView
+            android:id="@+id/day_list"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:scaleType="fitXY"
-            android:src="@drawable/w_card_shape" />
+            android:divider="@null"
+            android:dividerHeight="0dp"
+            android:scrollbars="vertical"
+            android:scrollbarSize="2dp"
+            android:paddingTop="2dp" />
 
-        <LinearLayout
+        <TextView
+            android:id="@+id/day_empty"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:padding="4dp">
-
-            <ImageView
-                android:id="@+id/day_bar_1"
-                android:layout_width="4dp"
-                android:layout_height="match_parent"
-                android:scaleType="fitXY"
-                android:src="@drawable/w_bar_shape" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginStart="6dp"
-                android:layout_weight="1"
-                android:gravity="center_vertical"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/day_nt_1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:id="@+id/day_name_1"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:layout_weight="1"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="1dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:id="@+id/day_room_icon_1"
-                        android:layout_width="12dp"
-                        android:layout_height="12dp"
-                        android:scaleType="fitCenter"
-                        android:src="@drawable/ic_w_room" />
-
-                    <TextView
-                        android:id="@+id/day_room_1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="3dp"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <ImageView
-                        android:id="@+id/day_teacher_icon_1"
-                        android:layout_width="12dp"
-                        android:layout_height="12dp"
-                        android:layout_marginStart="8dp"
-                        android:scaleType="fitCenter"
-                        android:src="@drawable/ic_w_teacher" />
-
-                    <TextView
-                        android:id="@+id/day_teacher_1"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="3dp"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-                </LinearLayout>
-            </LinearLayout>
-        </LinearLayout>
-    </FrameLayout>
-
-    <FrameLayout
-        android:id="@+id/day_row_2"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="2dp"
-        android:layout_weight="1">
-
-        <ImageView
-            android:id="@+id/day_bg_2"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="fitXY"
-            android:src="@drawable/w_card_shape" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:padding="4dp">
-
-            <ImageView
-                android:id="@+id/day_bar_2"
-                android:layout_width="4dp"
-                android:layout_height="match_parent"
-                android:scaleType="fitXY"
-                android:src="@drawable/w_bar_shape" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginStart="6dp"
-                android:layout_weight="1"
-                android:gravity="center_vertical"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/day_nt_2"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:id="@+id/day_name_2"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:layout_weight="1"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="1dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:id="@+id/day_room_icon_2"
-                        android:layout_width="12dp"
-                        android:layout_height="12dp"
-                        android:scaleType="fitCenter"
-                        android:src="@drawable/ic_w_room" />
-
-                    <TextView
-                        android:id="@+id/day_room_2"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="3dp"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <ImageView
-                        android:id="@+id/day_teacher_icon_2"
-                        android:layout_width="12dp"
-                        android:layout_height="12dp"
-                        android:layout_marginStart="8dp"
-                        android:scaleType="fitCenter"
-                        android:src="@drawable/ic_w_teacher" />
-
-                    <TextView
-                        android:id="@+id/day_teacher_2"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="3dp"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-                </LinearLayout>
-            </LinearLayout>
-        </LinearLayout>
-    </FrameLayout>
-
-    <FrameLayout
-        android:id="@+id/day_row_3"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="2dp"
-        android:layout_weight="1">
-
-        <ImageView
-            android:id="@+id/day_bg_3"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="fitXY"
-            android:src="@drawable/w_card_shape" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:padding="4dp">
-
-            <ImageView
-                android:id="@+id/day_bar_3"
-                android:layout_width="4dp"
-                android:layout_height="match_parent"
-                android:scaleType="fitXY"
-                android:src="@drawable/w_bar_shape" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginStart="6dp"
-                android:layout_weight="1"
-                android:gravity="center_vertical"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/day_nt_3"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:id="@+id/day_name_3"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:layout_weight="1"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="1dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:id="@+id/day_room_icon_3"
-                        android:layout_width="12dp"
-                        android:layout_height="12dp"
-                        android:scaleType="fitCenter"
-                        android:src="@drawable/ic_w_room" />
-
-                    <TextView
-                        android:id="@+id/day_room_3"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="3dp"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <ImageView
-                        android:id="@+id/day_teacher_icon_3"
-                        android:layout_width="12dp"
-                        android:layout_height="12dp"
-                        android:layout_marginStart="8dp"
-                        android:scaleType="fitCenter"
-                        android:src="@drawable/ic_w_teacher" />
-
-                    <TextView
-                        android:id="@+id/day_teacher_3"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="3dp"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-                </LinearLayout>
-            </LinearLayout>
-        </LinearLayout>
-    </FrameLayout>
-
-    <FrameLayout
-        android:id="@+id/day_row_4"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="2dp"
-        android:layout_weight="1">
-
-        <ImageView
-            android:id="@+id/day_bg_4"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="fitXY"
-            android:src="@drawable/w_card_shape" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:padding="4dp">
-
-            <ImageView
-                android:id="@+id/day_bar_4"
-                android:layout_width="4dp"
-                android:layout_height="match_parent"
-                android:scaleType="fitXY"
-                android:src="@drawable/w_bar_shape" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginStart="6dp"
-                android:layout_weight="1"
-                android:gravity="center_vertical"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/day_nt_4"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:id="@+id/day_name_4"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:layout_weight="1"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="1dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:id="@+id/day_room_icon_4"
-                        android:layout_width="12dp"
-                        android:layout_height="12dp"
-                        android:scaleType="fitCenter"
-                        android:src="@drawable/ic_w_room" />
-
-                    <TextView
-                        android:id="@+id/day_room_4"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="3dp"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <ImageView
-                        android:id="@+id/day_teacher_icon_4"
-                        android:layout_width="12dp"
-                        android:layout_height="12dp"
-                        android:layout_marginStart="8dp"
-                        android:scaleType="fitCenter"
-                        android:src="@drawable/ic_w_teacher" />
-
-                    <TextView
-                        android:id="@+id/day_teacher_4"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="3dp"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-                </LinearLayout>
-            </LinearLayout>
-        </LinearLayout>
-    </FrameLayout>
-
-    <FrameLayout
-        android:id="@+id/day_row_5"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="2dp"
-        android:layout_weight="1">
-
-        <ImageView
-            android:id="@+id/day_bg_5"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="fitXY"
-            android:src="@drawable/w_card_shape" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:padding="4dp">
-
-            <ImageView
-                android:id="@+id/day_bar_5"
-                android:layout_width="4dp"
-                android:layout_height="match_parent"
-                android:scaleType="fitXY"
-                android:src="@drawable/w_bar_shape" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginStart="6dp"
-                android:layout_weight="1"
-                android:gravity="center_vertical"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/day_nt_5"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:id="@+id/day_name_5"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:layout_weight="1"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="1dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:id="@+id/day_room_icon_5"
-                        android:layout_width="12dp"
-                        android:layout_height="12dp"
-                        android:scaleType="fitCenter"
-                        android:src="@drawable/ic_w_room" />
-
-                    <TextView
-                        android:id="@+id/day_room_5"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="3dp"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <ImageView
-                        android:id="@+id/day_teacher_icon_5"
-                        android:layout_width="12dp"
-                        android:layout_height="12dp"
-                        android:layout_marginStart="8dp"
-                        android:scaleType="fitCenter"
-                        android:src="@drawable/ic_w_teacher" />
-
-                    <TextView
-                        android:id="@+id/day_teacher_5"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="3dp"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-                </LinearLayout>
-            </LinearLayout>
-        </LinearLayout>
-    </FrameLayout>
-
-    <FrameLayout
-        android:id="@+id/day_row_6"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="2dp"
-        android:layout_weight="1">
-
-        <ImageView
-            android:id="@+id/day_bg_6"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="fitXY"
-            android:src="@drawable/w_card_shape" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:padding="4dp">
-
-            <ImageView
-                android:id="@+id/day_bar_6"
-                android:layout_width="4dp"
-                android:layout_height="match_parent"
-                android:scaleType="fitXY"
-                android:src="@drawable/w_bar_shape" />
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginStart="6dp"
-                android:layout_weight="1"
-                android:gravity="center_vertical"
-                android:orientation="vertical">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <TextView
-                        android:id="@+id/day_nt_6"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:id="@+id/day_name_6"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:layout_weight="1"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="1dp"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal">
-
-                    <ImageView
-                        android:id="@+id/day_room_icon_6"
-                        android:layout_width="12dp"
-                        android:layout_height="12dp"
-                        android:scaleType="fitCenter"
-                        android:src="@drawable/ic_w_room" />
-
-                    <TextView
-                        android:id="@+id/day_room_6"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="3dp"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <ImageView
-                        android:id="@+id/day_teacher_icon_6"
-                        android:layout_width="12dp"
-                        android:layout_height="12dp"
-                        android:layout_marginStart="8dp"
-                        android:scaleType="fitCenter"
-                        android:src="@drawable/ic_w_teacher" />
-
-                    <TextView
-                        android:id="@+id/day_teacher_6"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="3dp"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-                </LinearLayout>
-            </LinearLayout>
-        </LinearLayout>
+            android:gravity="center"
+            android:text="@string/widget_day_empty"
+            android:textSize="12sp"
+            android:textColor="@color/w_text_faint"
+            android:visibility="gone" />
     </FrameLayout>
 </LinearLayout>

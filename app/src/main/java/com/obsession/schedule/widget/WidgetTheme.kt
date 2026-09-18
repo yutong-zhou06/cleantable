@@ -24,43 +24,25 @@ data class WColors(
  * 小组件配色与课程色派生。
  *
  * 深色适配走的是**资源限定符**（values-night）：RemoteViews 没有运行时主题，
- * 这就是它对应 GlanceTheme 的等价做法。要「强制浅色/深色」时，
- * 用 createConfigurationContext 造一个覆盖了 uiMode 的 Context 去读颜色 ——
- * 于是 v0.5 起的「跟随应用 / 强制浅 / 强制深」三段设置仍然有效。
+ * 这就是它对应 GlanceTheme 的等价做法。v0.7 起规格固化：主题只有
+ * 「跟随系统浅/深」一种，不再提供强制切换。
  */
 object WidgetTheme {
 
-    /** 当前是否深色（已把用户的强制设置算进去） */
-    fun night(context: Context, prefs: WidgetStylePrefs): Boolean = when (prefs.themeMode) {
-        WidgetStylePrefs.THEME_LIGHT -> false
-        WidgetStylePrefs.THEME_DARK -> true
-        else -> systemNight(context)
-    }
+    /** 当前是否深色（跟随系统） */
+    fun night(context: Context): Boolean = systemNight(context)
 
-    fun colors(context: Context, prefs: WidgetStylePrefs): WColors {
-        val ctx = themed(context, night(context, prefs))
-        return WColors(
-            rootBg = ctx.getColor(R.color.w_root_bg),
-            text = ctx.getColor(R.color.w_text),
-            textDim = ctx.getColor(R.color.w_text_dim),
-            textFaint = ctx.getColor(R.color.w_text_faint),
-            accent = ctx.getColor(R.color.w_accent),
-            divider = ctx.getColor(R.color.w_divider),
-            chipBg = ctx.getColor(R.color.w_chip_bg),
-            cardBg = ctx.getColor(R.color.w_card_bg),
-            ongoingTint = ctx.getColor(R.color.w_ongoing_tint)
-        )
-    }
-
-    /** 取一个 uiMode 被强制过的 Context；与系统一致时直接返回原对象 */
-    private fun themed(context: Context, night: Boolean): Context {
-        if (night == systemNight(context)) return context
-        val conf = Configuration(context.resources.configuration).apply {
-            uiMode = (uiMode and Configuration.UI_MODE_NIGHT_MASK.inv()) or
-                (if (night) Configuration.UI_MODE_NIGHT_YES else Configuration.UI_MODE_NIGHT_NO)
-        }
-        return context.createConfigurationContext(conf)
-    }
+    fun colors(context: Context): WColors = WColors(
+        rootBg = context.getColor(R.color.w_root_bg),
+        text = context.getColor(R.color.w_text),
+        textDim = context.getColor(R.color.w_text_dim),
+        textFaint = context.getColor(R.color.w_text_faint),
+        accent = context.getColor(R.color.w_accent),
+        divider = context.getColor(R.color.w_divider),
+        chipBg = context.getColor(R.color.w_chip_bg),
+        cardBg = context.getColor(R.color.w_card_bg),
+        ongoingTint = context.getColor(R.color.w_ongoing_tint)
+    )
 
     fun systemNight(context: Context): Boolean =
         (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==

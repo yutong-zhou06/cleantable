@@ -1,18 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 周视图 4×2：头部 + 星期栏（固定）+ 课程列表（上下滚动，行=行槽，格子等大） -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/w_root_bg"
     android:orientation="vertical"
-    android:padding="8dp">
+    android:background="@drawable/w_root_bg">
 
-    <!-- 头部：左 日期+学期信息，右 设置/跳转 两个图标按钮 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:paddingHorizontal="12dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="2dp">
 
         <LinearLayout
             android:layout_width="0dp"
@@ -22,1169 +24,149 @@
 
             <TextView
                 android:id="@+id/week_date"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:ellipsize="end"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/w_text"
                 android:maxLines="1"
-                android:textStyle="bold" />
+                android:ellipsize="end" />
 
             <TextView
-                android:id="@+id/week_meta"
-                android:layout_width="wrap_content"
+                android:id="@+id/week_sub"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="1" />
+                android:textSize="9.5sp"
+                android:textColor="@color/w_text_dim"
+                android:maxLines="1"
+                android:ellipsize="end" />
         </LinearLayout>
 
-        <FrameLayout
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:background="@drawable/w_chip_bg">
+        <ImageView
+            android:id="@+id/week_ic_set"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginStart="8dp"
+            android:padding="2dp"
+            android:src="@drawable/ic_w_settings" />
 
-            <ImageView
-                android:id="@+id/week_settings"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_gravity="center"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_w_settings" />
-        </FrameLayout>
-
-        <FrameLayout
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+        <ImageView
+            android:id="@+id/week_ic_open"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             android:layout_marginStart="6dp"
-            android:background="@drawable/w_chip_bg">
-
-            <ImageView
-                android:id="@+id/week_open"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_gravity="center"
-                android:scaleType="fitCenter"
-                android:src="@drawable/ic_w_open" />
-        </FrameLayout>
+            android:padding="2dp"
+            android:src="@drawable/ic_w_open" />
     </LinearLayout>
 
-    <!-- 主体：7 列，每列 weight=1 -->
+    <!-- 星期栏：固定不随列表滚动 -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="4dp"
-        android:layout_weight="1"
-        android:orientation="horizontal">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp">
 
-        <!-- 列 1 -->
-        <LinearLayout
+        <TextView
+            android:id="@+id/week_head_1"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical"
-            android:paddingStart="1dp"
-            android:paddingEnd="1dp">
+            android:text="@string/wd_mon"
+            android:textSize="9.5sp"
+            android:textStyle="bold"
+            android:textColor="@color/w_text_dim"
+            android:gravity="center" />
 
-            <TextView
-                android:id="@+id/week_head_1"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:gravity="center"
-                android:maxLines="1"
-                android:textStyle="bold" />
-
-            <ImageView
-                android:id="@+id/week_bar_1"
-                android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:layout_marginTop="2dp"
-                android:scaleType="fitXY"
-                android:src="@drawable/w_bar_shape" />
-
-            <FrameLayout
-                android:id="@+id/week_slot_1_1"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="2dp"
-                android:layout_weight="1">
-
-                <ImageView
-                    android:id="@+id/week_c1_1_bg"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_card_shape" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:padding="3dp">
-
-                    <TextView
-                        android:id="@+id/week_c1_1_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:id="@+id/week_c1_1_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/week_c1_1_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-                </LinearLayout>
-            </FrameLayout>
-
-            <FrameLayout
-                android:id="@+id/week_slot_1_2"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="2dp"
-                android:layout_weight="1">
-
-                <ImageView
-                    android:id="@+id/week_c1_2_bg"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_card_shape" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:padding="3dp">
-
-                    <TextView
-                        android:id="@+id/week_c1_2_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:id="@+id/week_c1_2_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/week_c1_2_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-                </LinearLayout>
-            </FrameLayout>
-
-            <FrameLayout
-                android:id="@+id/week_slot_1_3"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="2dp"
-                android:layout_weight="1">
-
-                <ImageView
-                    android:id="@+id/week_c1_3_bg"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_card_shape" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:padding="3dp">
-
-                    <TextView
-                        android:id="@+id/week_c1_3_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:id="@+id/week_c1_3_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/week_c1_3_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-                </LinearLayout>
-            </FrameLayout>
-        </LinearLayout>
-
-        <!-- 列 2 -->
-        <LinearLayout
+        <TextView
+            android:id="@+id/week_head_2"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical"
-            android:paddingStart="1dp"
-            android:paddingEnd="1dp">
+            android:text="@string/wd_tue"
+            android:textSize="9.5sp"
+            android:textStyle="bold"
+            android:textColor="@color/w_text_dim"
+            android:gravity="center" />
 
-            <TextView
-                android:id="@+id/week_head_2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:gravity="center"
-                android:maxLines="1"
-                android:textStyle="bold" />
-
-            <ImageView
-                android:id="@+id/week_bar_2"
-                android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:layout_marginTop="2dp"
-                android:scaleType="fitXY"
-                android:src="@drawable/w_bar_shape" />
-
-            <FrameLayout
-                android:id="@+id/week_slot_2_1"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="2dp"
-                android:layout_weight="1">
-
-                <ImageView
-                    android:id="@+id/week_c2_1_bg"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_card_shape" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:padding="3dp">
-
-                    <TextView
-                        android:id="@+id/week_c2_1_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:id="@+id/week_c2_1_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/week_c2_1_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-                </LinearLayout>
-            </FrameLayout>
-
-            <FrameLayout
-                android:id="@+id/week_slot_2_2"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="2dp"
-                android:layout_weight="1">
-
-                <ImageView
-                    android:id="@+id/week_c2_2_bg"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_card_shape" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:padding="3dp">
-
-                    <TextView
-                        android:id="@+id/week_c2_2_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:id="@+id/week_c2_2_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/week_c2_2_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-                </LinearLayout>
-            </FrameLayout>
-
-            <FrameLayout
-                android:id="@+id/week_slot_2_3"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="2dp"
-                android:layout_weight="1">
-
-                <ImageView
-                    android:id="@+id/week_c2_3_bg"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_card_shape" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:padding="3dp">
-
-                    <TextView
-                        android:id="@+id/week_c2_3_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:id="@+id/week_c2_3_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/week_c2_3_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-                </LinearLayout>
-            </FrameLayout>
-        </LinearLayout>
-
-        <!-- 列 3 -->
-        <LinearLayout
+        <TextView
+            android:id="@+id/week_head_3"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical"
-            android:paddingStart="1dp"
-            android:paddingEnd="1dp">
+            android:text="@string/wd_wed"
+            android:textSize="9.5sp"
+            android:textStyle="bold"
+            android:textColor="@color/w_text_dim"
+            android:gravity="center" />
 
-            <TextView
-                android:id="@+id/week_head_3"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:gravity="center"
-                android:maxLines="1"
-                android:textStyle="bold" />
-
-            <ImageView
-                android:id="@+id/week_bar_3"
-                android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:layout_marginTop="2dp"
-                android:scaleType="fitXY"
-                android:src="@drawable/w_bar_shape" />
-
-            <FrameLayout
-                android:id="@+id/week_slot_3_1"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="2dp"
-                android:layout_weight="1">
-
-                <ImageView
-                    android:id="@+id/week_c3_1_bg"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_card_shape" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:padding="3dp">
-
-                    <TextView
-                        android:id="@+id/week_c3_1_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:id="@+id/week_c3_1_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/week_c3_1_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-                </LinearLayout>
-            </FrameLayout>
-
-            <FrameLayout
-                android:id="@+id/week_slot_3_2"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="2dp"
-                android:layout_weight="1">
-
-                <ImageView
-                    android:id="@+id/week_c3_2_bg"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_card_shape" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:padding="3dp">
-
-                    <TextView
-                        android:id="@+id/week_c3_2_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:id="@+id/week_c3_2_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/week_c3_2_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-                </LinearLayout>
-            </FrameLayout>
-
-            <FrameLayout
-                android:id="@+id/week_slot_3_3"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="2dp"
-                android:layout_weight="1">
-
-                <ImageView
-                    android:id="@+id/week_c3_3_bg"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_card_shape" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:padding="3dp">
-
-                    <TextView
-                        android:id="@+id/week_c3_3_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:id="@+id/week_c3_3_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/week_c3_3_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-                </LinearLayout>
-            </FrameLayout>
-        </LinearLayout>
-
-        <!-- 列 4 -->
-        <LinearLayout
+        <TextView
+            android:id="@+id/week_head_4"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical"
-            android:paddingStart="1dp"
-            android:paddingEnd="1dp">
+            android:text="@string/wd_thu"
+            android:textSize="9.5sp"
+            android:textStyle="bold"
+            android:textColor="@color/w_text_dim"
+            android:gravity="center" />
 
-            <TextView
-                android:id="@+id/week_head_4"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:gravity="center"
-                android:maxLines="1"
-                android:textStyle="bold" />
-
-            <ImageView
-                android:id="@+id/week_bar_4"
-                android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:layout_marginTop="2dp"
-                android:scaleType="fitXY"
-                android:src="@drawable/w_bar_shape" />
-
-            <FrameLayout
-                android:id="@+id/week_slot_4_1"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="2dp"
-                android:layout_weight="1">
-
-                <ImageView
-                    android:id="@+id/week_c4_1_bg"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_card_shape" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:padding="3dp">
-
-                    <TextView
-                        android:id="@+id/week_c4_1_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:id="@+id/week_c4_1_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/week_c4_1_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-                </LinearLayout>
-            </FrameLayout>
-
-            <FrameLayout
-                android:id="@+id/week_slot_4_2"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="2dp"
-                android:layout_weight="1">
-
-                <ImageView
-                    android:id="@+id/week_c4_2_bg"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_card_shape" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:padding="3dp">
-
-                    <TextView
-                        android:id="@+id/week_c4_2_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:id="@+id/week_c4_2_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/week_c4_2_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-                </LinearLayout>
-            </FrameLayout>
-
-            <FrameLayout
-                android:id="@+id/week_slot_4_3"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="2dp"
-                android:layout_weight="1">
-
-                <ImageView
-                    android:id="@+id/week_c4_3_bg"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_card_shape" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:padding="3dp">
-
-                    <TextView
-                        android:id="@+id/week_c4_3_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:id="@+id/week_c4_3_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/week_c4_3_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-                </LinearLayout>
-            </FrameLayout>
-        </LinearLayout>
-
-        <!-- 列 5 -->
-        <LinearLayout
+        <TextView
+            android:id="@+id/week_head_5"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical"
-            android:paddingStart="1dp"
-            android:paddingEnd="1dp">
+            android:text="@string/wd_fri"
+            android:textSize="9.5sp"
+            android:textStyle="bold"
+            android:textColor="@color/w_text_dim"
+            android:gravity="center" />
 
-            <TextView
-                android:id="@+id/week_head_5"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:gravity="center"
-                android:maxLines="1"
-                android:textStyle="bold" />
-
-            <ImageView
-                android:id="@+id/week_bar_5"
-                android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:layout_marginTop="2dp"
-                android:scaleType="fitXY"
-                android:src="@drawable/w_bar_shape" />
-
-            <FrameLayout
-                android:id="@+id/week_slot_5_1"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="2dp"
-                android:layout_weight="1">
-
-                <ImageView
-                    android:id="@+id/week_c5_1_bg"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_card_shape" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:padding="3dp">
-
-                    <TextView
-                        android:id="@+id/week_c5_1_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:id="@+id/week_c5_1_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/week_c5_1_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-                </LinearLayout>
-            </FrameLayout>
-
-            <FrameLayout
-                android:id="@+id/week_slot_5_2"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="2dp"
-                android:layout_weight="1">
-
-                <ImageView
-                    android:id="@+id/week_c5_2_bg"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_card_shape" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:padding="3dp">
-
-                    <TextView
-                        android:id="@+id/week_c5_2_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:id="@+id/week_c5_2_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/week_c5_2_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-                </LinearLayout>
-            </FrameLayout>
-
-            <FrameLayout
-                android:id="@+id/week_slot_5_3"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="2dp"
-                android:layout_weight="1">
-
-                <ImageView
-                    android:id="@+id/week_c5_3_bg"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_card_shape" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:padding="3dp">
-
-                    <TextView
-                        android:id="@+id/week_c5_3_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:id="@+id/week_c5_3_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/week_c5_3_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-                </LinearLayout>
-            </FrameLayout>
-        </LinearLayout>
-
-        <!-- 列 6 -->
-        <LinearLayout
+        <TextView
+            android:id="@+id/week_head_6"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical"
-            android:paddingStart="1dp"
-            android:paddingEnd="1dp">
+            android:text="@string/wd_sat"
+            android:textSize="9.5sp"
+            android:textStyle="bold"
+            android:textColor="@color/w_text_dim"
+            android:gravity="center" />
 
-            <TextView
-                android:id="@+id/week_head_6"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:gravity="center"
-                android:maxLines="1"
-                android:textStyle="bold" />
-
-            <ImageView
-                android:id="@+id/week_bar_6"
-                android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:layout_marginTop="2dp"
-                android:scaleType="fitXY"
-                android:src="@drawable/w_bar_shape" />
-
-            <FrameLayout
-                android:id="@+id/week_slot_6_1"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="2dp"
-                android:layout_weight="1">
-
-                <ImageView
-                    android:id="@+id/week_c6_1_bg"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_card_shape" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:padding="3dp">
-
-                    <TextView
-                        android:id="@+id/week_c6_1_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:id="@+id/week_c6_1_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/week_c6_1_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-                </LinearLayout>
-            </FrameLayout>
-
-            <FrameLayout
-                android:id="@+id/week_slot_6_2"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="2dp"
-                android:layout_weight="1">
-
-                <ImageView
-                    android:id="@+id/week_c6_2_bg"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_card_shape" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:padding="3dp">
-
-                    <TextView
-                        android:id="@+id/week_c6_2_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:id="@+id/week_c6_2_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/week_c6_2_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-                </LinearLayout>
-            </FrameLayout>
-
-            <FrameLayout
-                android:id="@+id/week_slot_6_3"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="2dp"
-                android:layout_weight="1">
-
-                <ImageView
-                    android:id="@+id/week_c6_3_bg"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_card_shape" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:padding="3dp">
-
-                    <TextView
-                        android:id="@+id/week_c6_3_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:id="@+id/week_c6_3_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/week_c6_3_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-                </LinearLayout>
-            </FrameLayout>
-        </LinearLayout>
-
-        <!-- 列 7 -->
-        <LinearLayout
+        <TextView
+            android:id="@+id/week_head_7"
             android:layout_width="0dp"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical"
-            android:paddingStart="1dp"
-            android:paddingEnd="1dp">
-
-            <TextView
-                android:id="@+id/week_head_7"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:gravity="center"
-                android:maxLines="1"
-                android:textStyle="bold" />
-
-            <ImageView
-                android:id="@+id/week_bar_7"
-                android:layout_width="match_parent"
-                android:layout_height="2dp"
-                android:layout_marginTop="2dp"
-                android:scaleType="fitXY"
-                android:src="@drawable/w_bar_shape" />
-
-            <FrameLayout
-                android:id="@+id/week_slot_7_1"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="2dp"
-                android:layout_weight="1">
-
-                <ImageView
-                    android:id="@+id/week_c7_1_bg"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_card_shape" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:padding="3dp">
-
-                    <TextView
-                        android:id="@+id/week_c7_1_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:id="@+id/week_c7_1_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/week_c7_1_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-                </LinearLayout>
-            </FrameLayout>
-
-            <FrameLayout
-                android:id="@+id/week_slot_7_2"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="2dp"
-                android:layout_weight="1">
-
-                <ImageView
-                    android:id="@+id/week_c7_2_bg"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_card_shape" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:padding="3dp">
-
-                    <TextView
-                        android:id="@+id/week_c7_2_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:id="@+id/week_c7_2_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/week_c7_2_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-                </LinearLayout>
-            </FrameLayout>
-
-            <FrameLayout
-                android:id="@+id/week_slot_7_3"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="2dp"
-                android:layout_weight="1">
-
-                <ImageView
-                    android:id="@+id/week_c7_3_bg"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_card_shape" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:padding="3dp">
-
-                    <TextView
-                        android:id="@+id/week_c7_3_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-
-                    <TextView
-                        android:id="@+id/week_c7_3_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/week_c7_3_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1" />
-                </LinearLayout>
-            </FrameLayout>
-        </LinearLayout>
+            android:text="@string/wd_sun"
+            android:textSize="9.5sp"
+            android:textStyle="bold"
+            android:textColor="@color/w_text_dim"
+            android:gravity="center" />
     </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <ListView
+            android:id="@+id/week_list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:divider="@null"
+            android:dividerHeight="0dp"
+            android:scrollbars="vertical"
+            android:scrollbarSize="2dp"
+            android:paddingTop="2dp" />
+
+        <TextView
+            android:id="@+id/week_empty"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:text="@string/widget_week_empty"
+            android:textSize="12sp"
+            android:textColor="@color/w_text_faint"
+            android:visibility="gone" />
+    </FrameLayout>
 </LinearLayout>

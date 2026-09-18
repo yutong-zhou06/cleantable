@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 日视图 / 近日课程 / 2×2 共用的行内间距由各自行布局控制 -->
+<resources>
+    <dimen name="w_row_v_gap">5dp</dimen>
+</resources>

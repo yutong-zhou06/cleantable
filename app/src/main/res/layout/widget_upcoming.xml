@@ -1,518 +1,140 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 近日课程 4×2：头部 + 今天｜明天两栏（各自独立滚动） -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/w_root_bg"
     android:orientation="vertical"
-    android:padding="8dp">
+    android:background="@drawable/w_root_bg">
 
-    <!-- 头部：左 学期/课表名，右 日期+周次+星期 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingBottom="6dp">
+        android:gravity="center_vertical"
+        android:paddingHorizontal="12dp"
+        android:paddingTop="8dp"
+        android:paddingBottom="4dp">
 
         <TextView
-            android:id="@+id/up_head_left"
+            android:id="@+id/up_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:ellipsize="end"
-            android:maxLines="1"
+            android:textSize="13sp"
+            android:textStyle="bold"
             android:textColor="@color/w_text"
-            android:textStyle="bold" />
+            android:maxLines="1"
+            android:ellipsize="end" />
 
         <TextView
-            android:id="@+id/up_head_right"
+            android:id="@+id/up_date"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textColor="@color/w_text_dim" />
+            android:textSize="9.5sp"
+            android:textColor="@color/w_text_dim"
+            android:maxLines="1" />
     </LinearLayout>
 
-    <!-- 主体：左右两栏，中间 1dp 分隔 -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:paddingHorizontal="12dp"
+        android:paddingBottom="8dp">
 
-        <!-- 左栏：今天 -->
+        <!-- 今天 -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:orientation="vertical"
-            android:paddingEnd="6dp">
+            android:orientation="vertical">
 
             <TextView
-                android:id="@+id/up_today_title"
-                android:layout_width="match_parent"
+                android:id="@+id/up_t1"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:paddingBottom="4dp"
+                android:textSize="10.5sp"
+                android:textStyle="bold"
                 android:textColor="@color/w_accent"
-                android:textStyle="bold" />
+                android:maxLines="1" />
 
-            <TextView
-                android:id="@+id/up_today_empty"
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:ellipsize="end"
-                android:gravity="center"
-                android:maxLines="1"
-                android:textColor="@color/w_text_faint"
-                android:visibility="gone" />
+                android:layout_marginTop="2dp">
 
-            <LinearLayout
-                android:id="@+id/up_today_1_slot"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="3dp"
-                android:layout_weight="1"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:id="@+id/up_today_1_bar"
-                    android:layout_width="3dp"
+                <ListView
+                    android:id="@+id/up_list_t"
+                    android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_bar_shape" />
+                    android:divider="@null"
+                    android:dividerHeight="0dp"
+                    android:scrollbars="vertical"
+                    android:scrollbarSize="2dp" />
 
-                <LinearLayout
-                    android:layout_width="0dp"
+                <TextView
+                    android:id="@+id/up_empty_t"
+                    android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_marginStart="6dp"
-                    android:layout_weight="1"
-                    android:gravity="center_vertical"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/up_today_1_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="@color/w_text"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/up_today_1_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="@color/w_text_dim" />
-
-                    <TextView
-                        android:id="@+id/up_today_1_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="@color/w_text_dim" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/up_today_2_slot"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="3dp"
-                android:layout_weight="1"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:id="@+id/up_today_2_bar"
-                    android:layout_width="3dp"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_bar_shape" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="6dp"
-                    android:layout_weight="1"
-                    android:gravity="center_vertical"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/up_today_2_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="@color/w_text"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/up_today_2_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="@color/w_text_dim" />
-
-                    <TextView
-                        android:id="@+id/up_today_2_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="@color/w_text_dim" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/up_today_3_slot"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="3dp"
-                android:layout_weight="1"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:id="@+id/up_today_3_bar"
-                    android:layout_width="3dp"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_bar_shape" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="6dp"
-                    android:layout_weight="1"
-                    android:gravity="center_vertical"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/up_today_3_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="@color/w_text"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/up_today_3_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="@color/w_text_dim" />
-
-                    <TextView
-                        android:id="@+id/up_today_3_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="@color/w_text_dim" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/up_today_4_slot"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="3dp"
-                android:layout_weight="1"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:id="@+id/up_today_4_bar"
-                    android:layout_width="3dp"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_bar_shape" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="6dp"
-                    android:layout_weight="1"
-                    android:gravity="center_vertical"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/up_today_4_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="@color/w_text"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/up_today_4_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="@color/w_text_dim" />
-
-                    <TextView
-                        android:id="@+id/up_today_4_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="@color/w_text_dim" />
-                </LinearLayout>
-            </LinearLayout>
+                    android:gravity="center"
+                    android:text="@string/widget_up_empty_t"
+                    android:textSize="11sp"
+                    android:textColor="@color/w_text_faint"
+                    android:visibility="gone" />
+            </FrameLayout>
         </LinearLayout>
 
-        <!--
-          分隔 1dp。
-          注意：这里**必须**用 TextView，不能用裸 <View> —— RemoteViews 膨胀布局时
-          只允许带 @RemoteView 注解的类（android.view.View 没有这个注解），
-          用 <View> 启动器会抛 Class not allowed to be inflated，表现为「载入失败」。
-        -->
+        <!-- 中缝分隔（RemoteViews 不允许裸 <View>，用 TextView） -->
         <TextView
-            android:id="@+id/up_divider"
             android:layout_width="1dp"
             android:layout_height="match_parent"
-            android:background="@color/w_divider"
-            android:importantForAccessibility="no" />
+            android:layout_marginHorizontal="8dp"
+            android:background="@color/w_divider" />
 
-        <!-- 右栏：明天 -->
+        <!-- 明天 -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:orientation="vertical"
-            android:paddingStart="6dp">
+            android:orientation="vertical">
 
             <TextView
-                android:id="@+id/up_tmr_title"
-                android:layout_width="match_parent"
+                android:id="@+id/up_t2"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:maxLines="1"
-                android:paddingBottom="4dp"
-                android:textColor="@color/w_accent"
-                android:textStyle="bold" />
+                android:textSize="10.5sp"
+                android:textStyle="bold"
+                android:textColor="@color/w_text"
+                android:maxLines="1" />
 
-            <TextView
-                android:id="@+id/up_tmr_empty"
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                android:ellipsize="end"
-                android:gravity="center"
-                android:maxLines="1"
-                android:textColor="@color/w_text_faint"
-                android:visibility="gone" />
+                android:layout_marginTop="2dp">
 
-            <LinearLayout
-                android:id="@+id/up_tmr_1_slot"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="3dp"
-                android:layout_weight="1"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:id="@+id/up_tmr_1_bar"
-                    android:layout_width="3dp"
+                <ListView
+                    android:id="@+id/up_list_m"
+                    android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_bar_shape" />
+                    android:divider="@null"
+                    android:dividerHeight="0dp"
+                    android:scrollbars="vertical"
+                    android:scrollbarSize="2dp" />
 
-                <LinearLayout
-                    android:layout_width="0dp"
+                <TextView
+                    android:id="@+id/up_empty_m"
+                    android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_marginStart="6dp"
-                    android:layout_weight="1"
-                    android:gravity="center_vertical"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/up_tmr_1_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="@color/w_text"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/up_tmr_1_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="@color/w_text_dim" />
-
-                    <TextView
-                        android:id="@+id/up_tmr_1_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="@color/w_text_dim" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/up_tmr_2_slot"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="3dp"
-                android:layout_weight="1"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:id="@+id/up_tmr_2_bar"
-                    android:layout_width="3dp"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_bar_shape" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="6dp"
-                    android:layout_weight="1"
-                    android:gravity="center_vertical"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/up_tmr_2_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="@color/w_text"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/up_tmr_2_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="@color/w_text_dim" />
-
-                    <TextView
-                        android:id="@+id/up_tmr_2_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="@color/w_text_dim" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/up_tmr_3_slot"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="3dp"
-                android:layout_weight="1"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:id="@+id/up_tmr_3_bar"
-                    android:layout_width="3dp"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_bar_shape" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="6dp"
-                    android:layout_weight="1"
-                    android:gravity="center_vertical"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/up_tmr_3_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="@color/w_text"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/up_tmr_3_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="@color/w_text_dim" />
-
-                    <TextView
-                        android:id="@+id/up_tmr_3_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="@color/w_text_dim" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <LinearLayout
-                android:id="@+id/up_tmr_4_slot"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_marginTop="3dp"
-                android:layout_weight="1"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:id="@+id/up_tmr_4_bar"
-                    android:layout_width="3dp"
-                    android:layout_height="match_parent"
-                    android:scaleType="fitXY"
-                    android:src="@drawable/w_bar_shape" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="6dp"
-                    android:layout_weight="1"
-                    android:gravity="center_vertical"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/up_tmr_4_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="@color/w_text"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/up_tmr_4_room"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="@color/w_text_dim" />
-
-                    <TextView
-                        android:id="@+id/up_tmr_4_time"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="@color/w_text_dim" />
-                </LinearLayout>
-            </LinearLayout>
+                    android:gravity="center"
+                    android:text="@string/widget_up_empty_m"
+                    android:textSize="11sp"
+                    android:textColor="@color/w_text_faint"
+                    android:visibility="gone" />
+            </FrameLayout>
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>
