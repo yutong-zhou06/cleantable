@@ -17,7 +17,7 @@ import com.obsession.schedule.importer.HtmlScheduleImporter
 import com.obsession.schedule.importer.HtmlTextDecoder
 import com.obsession.schedule.importer.ParseOutcome
 import com.obsession.schedule.importer.ParsedCourse
-import com.obsession.schedule.widget.ScheduleWidgetRenderer
+import com.obsession.schedule.widget.WidgetRegistry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -491,6 +491,6 @@ class ScheduleViewModel(app: Application) : AndroidViewModel(app) {
      * 切到 IO 是因为 refreshAll 内部用 runBlocking 查库，不能占着主线程。
      */
     private suspend fun refreshWidgets() {
-        withContext(Dispatchers.IO) { ScheduleWidgetRenderer.refreshAll(appContext) }
+        withContext(Dispatchers.IO) { WidgetRegistry.refreshAll(appContext) }
     }
 }

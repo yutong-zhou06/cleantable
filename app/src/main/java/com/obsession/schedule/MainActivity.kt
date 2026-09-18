@@ -33,7 +33,8 @@ import com.obsession.schedule.ui.schedule.ScheduleViewModel
 import com.obsession.schedule.ui.settings.SettingsScreen
 import com.obsession.schedule.ui.theme.ObsessionTheme
 import com.obsession.schedule.ui.theme.appDarkTheme
-import com.obsession.schedule.widget.ScheduleWidgetRenderer
+import com.obsession.schedule.widget.Rv
+import com.obsession.schedule.widget.WidgetRegistry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -41,6 +42,20 @@ import kotlinx.coroutines.launch
  * 主界面的屏。序号即左右切换动画的方向（课表 → 管理 → 已添加课程 → 设置）。
  */
 enum class Screen { SCHEDULE, MANAGE, COURSES, SETTINGS }
+
+/**
+ * 小组件头部的图标点击后希望落地哪一屏。
+ *
+ * Activity 的 onNewIntent 与 Compose 的 LaunchedEffect 不在同一时机触发，
+ * 用一个 Compose 能观察到的状态中转一下，避免「点了设置却停在主页」。
+ */
+object PendingScreen {
+    val state = mutableStateOf<Screen?>(null)
+
+    fun request(screen: Screen) {
+        state.value = screen
+    }
+}
 
 class MainActivity : ComponentActivity() {
 
@@ -50,6 +65,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         handleImportIntent(intent)
+        handleWidgetIntent(intent)
         setContent {
             val dark = appDarkTheme()
             // 系统栏图标颜色跟随应用内主题（而非系统外观），
@@ -71,6 +87,7 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         handleImportIntent(intent)
+        handleWidgetIntent(intent)
     }
 
     /**
@@ -88,6 +105,18 @@ class MainActivity : ComponentActivity() {
         when (intent?.action) {
             Intent.ACTION_SEND -> handleSend(intent)
             Intent.ACTION_VIEW -> handleView(intent)
+        }
+    }
+
+    /**
+     * 小组件头部图标点进来的入口（见 Rv.clickIcon）：
+     * 设置图标 → 落地设置页；跳转图标 → 落地课表主页。
+     * 目标屏先寄存到 PendingScreen，等 MainContent 组合完成后消费。
+     */
+    private fun handleWidgetIntent(intent: Intent?) {
+        when (intent?.getStringExtra(Rv.EXTRA_WIDGET_ACTION)) {
+            Rv.ACTION_SETTINGS -> PendingScreen.request(Screen.SETTINGS)
+            Rv.ACTION_HOME -> PendingScreen.request(Screen.SCHEDULE)
         }
     }
 
@@ -137,7 +166,7 @@ class MainActivity : ComponentActivity() {
         // 打开应用时顺手刷一次小组件：覆盖「改完数据没刷、跨天没触发」等一切遗漏时机。
         // 这也是 v0.3 小组件不更新修复链条的最后一环。
         lifecycleScope.launch(Dispatchers.IO) {
-            ScheduleWidgetRenderer.refreshAll(applicationContext)
+            WidgetRegistry.refreshAll(applicationContext)
         }
     }
 }
@@ -146,6 +175,15 @@ class MainActivity : ComponentActivity() {
 private fun MainContent(viewModel: ScheduleViewModel) {
     val context = LocalContext.current
     var screen by remember { mutableStateOf(Screen.SCHEDULE) }
+
+    // 小组件图标点进来时直接落到目标屏（设置 / 课表主页）
+    val requestedScreen by PendingScreen.state
+    LaunchedEffect(requestedScreen) {
+        requestedScreen?.let {
+            screen = it
+            PendingScreen.state.value = null
+        }
+    }
 
     fun openBrowser() {
         context.startActivity(Intent(context, BrowserImportActivity::class.java))

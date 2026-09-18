@@ -65,7 +65,7 @@ import com.obsession.schedule.ui.schedule.ScheduleViewModel
 import com.obsession.schedule.ui.theme.ThemeController
 import com.obsession.schedule.ui.theme.ThemeMode
 import com.obsession.schedule.ui.theme.appDarkTheme
-import com.obsession.schedule.widget.WidgetSnapshotRenderer
+import com.obsession.schedule.widget.WidgetRegistry
 import com.obsession.schedule.widget.WidgetStylePrefs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -454,7 +454,7 @@ private fun WidgetStyleCard() {
         prefs.save(context)
         // 保存即重画并推送桌面（内部查库，须 IO 线程）；未放置的组件会被跳过
         scope.launch(Dispatchers.IO) {
-            WidgetSnapshotRenderer.refreshAllWithReport(context)
+            WidgetRegistry.refreshAllWithReport(context)
         }
     }
 

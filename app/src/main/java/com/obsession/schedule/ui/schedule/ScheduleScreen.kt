@@ -86,7 +86,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.obsession.schedule.data.BgConfig
 import com.obsession.schedule.widget.WidgetRefreshResult
-import com.obsession.schedule.widget.WidgetSnapshotRenderer
+import com.obsession.schedule.widget.WidgetRegistry
 import com.obsession.schedule.data.CourseEntity
 import com.obsession.schedule.data.TimeSlotEntity
 import com.obsession.schedule.data.formatDayNumber
@@ -303,7 +303,7 @@ fun ScheduleScreen(
                                         widgetReport = kotlinx.coroutines.withContext(
                                             kotlinx.coroutines.Dispatchers.IO
                                         ) {
-                                            WidgetSnapshotRenderer.refreshAllWithReport(context)
+                                            WidgetRegistry.refreshAllWithReport(context)
                                         }
                                         widgetUpdating = false
                                     }

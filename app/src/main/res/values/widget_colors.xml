@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  小组件配色（浅色 / 柔光）。
+  深色版本在 values-night/widget_colors.xml，系统切深色时自动生效 ——
+  RemoteViews 没有运行时主题，资源限定符就是它对应 GlanceTheme 的做法。
+  命名以 w_ 前缀，与旧组件（widget_*）区分。
+-->
+<resources>
+    <!-- 整卡底：浅色下是接近白的半透明，透出壁纸形成磨砂观感 -->
+    <color name="w_root_bg">#F2FFFFFF</color>
+
+    <color name="w_text">#FF16181D</color>
+    <color name="w_text_dim">#FF5C6472</color>
+    <color name="w_text_faint">#FF9AA1AE</color>
+
+    <color name="w_accent">#FF4C6FFF</color>
+
+    <!-- 分隔线 / 中缝：极淡 -->
+    <color name="w_divider">#1A000000</color>
+
+    <!-- 图标胶囊底 -->
+    <color name="w_chip_bg">#0F000000</color>
+
+    <!-- 无课程色时的卡片默认底 -->
+    <color name="w_card_bg">#14000000</color>
+
+    <!-- 「正在上」的浅底与描边 -->
+    <color name="w_ongoing_tint">#1F4C6FFF</color>
+</resources>

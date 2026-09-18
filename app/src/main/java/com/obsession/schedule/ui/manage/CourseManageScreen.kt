@@ -56,7 +56,9 @@ import com.obsession.schedule.data.CourseEntity
 import com.obsession.schedule.data.WEEK_TYPE_ALL
 import com.obsession.schedule.data.WEEK_TYPE_EVEN
 import com.obsession.schedule.data.WEEK_TYPE_ODD
+import com.obsession.schedule.ui.common.NumberField
 import com.obsession.schedule.ui.schedule.COURSE_PALETTE
+import com.obsession.schedule.ui.schedule.MAX_WEEK
 import com.obsession.schedule.ui.schedule.ScheduleViewModel
 
 private val WEEKDAY_LABELS = listOf("一", "二", "三", "四", "五", "六", "日")
@@ -549,17 +551,17 @@ private fun BulkTimeEditDialog(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    SmallNumberField("开始节", startNode, Modifier.weight(1f)) {
-                        startNode = it.coerceIn(1, 15)
+                    NumberField(startNode, "开始节", 1..MAX_NODE, Modifier.weight(1f), labelSize = 10.sp) {
+                        startNode = it
                     }
-                    SmallNumberField("连堂", step, Modifier.weight(1f)) {
-                        step = it.coerceIn(1, 15)
+                    NumberField(step, "连堂", 1..MAX_NODE, Modifier.weight(1f), labelSize = 10.sp) {
+                        step = it
                     }
-                    SmallNumberField("起始周", startWeek, Modifier.weight(1f)) {
-                        startWeek = it.coerceIn(1, 40)
+                    NumberField(startWeek, "起始周", 1..MAX_WEEK, Modifier.weight(1f), labelSize = 10.sp) {
+                        startWeek = it
                     }
-                    SmallNumberField("结束周", endWeek, Modifier.weight(1f)) {
-                        endWeek = it.coerceIn(1, 40)
+                    NumberField(endWeek, "结束周", 1..MAX_WEEK, Modifier.weight(1f), labelSize = 10.sp) {
+                        endWeek = it
                     }
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -588,10 +590,11 @@ private fun BulkTimeEditDialog(
                 onApply { course ->
                     course.copy(
                         dayOfWeek = day,
-                        startNode = startNode,
-                        step = step,
-                        startWeek = minOf(startWeek, endWeek),
-                        endWeek = maxOf(startWeek, endWeek),
+                        // 输入框允许中途留空，落库前统一钳到合法范围
+                        startNode = startNode.coerceIn(1, MAX_NODE),
+                        step = step.coerceIn(1, MAX_NODE),
+                        startWeek = minOf(startWeek, endWeek).coerceIn(1, MAX_WEEK),
+                        endWeek = maxOf(startWeek, endWeek).coerceIn(1, MAX_WEEK),
                         weekType = weekType,
                         room = room.trim(),
                         teacher = teacher.trim()
@@ -626,24 +629,8 @@ private fun ChipSmall(label: String, selected: Boolean, onClick: () -> Unit) {
     }
 }
 
-@Composable
-private fun SmallNumberField(
-    label: String,
-    value: Int,
-    modifier: Modifier = Modifier,
-    onChange: (Int) -> Unit
-) {
-    OutlinedTextField(
-        value = value.toString(),
-        onValueChange = { raw ->
-            val digits = raw.filter { it.isDigit() }.take(2)
-            onChange(digits.toIntOrNull() ?: 0)
-        },
-        label = { Text(label, fontSize = 10.sp) },
-        singleLine = true,
-        modifier = modifier
-    )
-}
+/** 批量改时间时允许的节次上限（与作息编辑器一致，这里只要够用即可） */
+private const val MAX_NODE = 15
 
 @Composable
 private fun BarAction(icon: ImageVector, label: String, onClick: () -> Unit) {

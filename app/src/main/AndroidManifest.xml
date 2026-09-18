@@ -77,39 +77,51 @@
           系统进程能送达，第三方应用发了也不会被接收。
         -->
         <receiver
-            android:name=".widget.TodayWidgetProvider"
+            android:name=".widget.WeekWidgetProvider"
             android:exported="false"
-            android:label="@string/widget_today_label">
+            android:label="@string/widget_week_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/widget_today_info" />
+                android:resource="@xml/widget_week_info" />
         </receiver>
 
         <receiver
-            android:name=".widget.NextWidgetProvider"
+            android:name=".widget.DayWidgetProvider"
             android:exported="false"
-            android:label="@string/widget_next_label">
+            android:label="@string/widget_day_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/widget_next_info" />
+                android:resource="@xml/widget_day_info" />
         </receiver>
 
         <receiver
-            android:name=".widget.BarWidgetProvider"
+            android:name=".widget.UpcomingWidgetProvider"
             android:exported="false"
-            android:label="@string/widget_bar_label">
+            android:label="@string/widget_upcoming_label">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/widget_bar_info" />
+                android:resource="@xml/widget_upcoming_info" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.CompactWidgetProvider"
+            android:exported="false"
+            android:label="@string/widget_compact_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_compact_info" />
         </receiver>
 
         <!-- 零点兜底刷新（配 DATE_CHANGED 广播）。显式 Intent 触发，无需 filter -->

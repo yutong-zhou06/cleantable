@@ -39,6 +39,7 @@ import com.obsession.schedule.data.CourseEntity
 import com.obsession.schedule.data.WEEK_TYPE_ALL
 import com.obsession.schedule.data.WEEK_TYPE_EVEN
 import com.obsession.schedule.data.WEEK_TYPE_ODD
+import com.obsession.schedule.ui.common.NumberField
 
 /**
  * 8 色课程色板。
@@ -135,14 +136,16 @@ fun CourseEditorDialog(
                     NumberField(
                         value = startNode,
                         label = "开始",
+                        range = 1..maxNode.coerceAtLeast(1),
                         modifier = Modifier.weight(1f),
-                        onChange = { startNode = it.coerceIn(1, maxNode) }
+                        onChange = { startNode = it }
                     )
                     NumberField(
                         value = step,
                         label = "连堂",
+                        range = 1..maxNode.coerceAtLeast(1),
                         modifier = Modifier.weight(1f),
-                        onChange = { step = it.coerceIn(1, maxNode) }
+                        onChange = { step = it }
                     )
                 }
                 Text(
@@ -159,14 +162,16 @@ fun CourseEditorDialog(
                     NumberField(
                         value = startWeek,
                         label = "起始周",
+                        range = 1..MAX_WEEK,
                         modifier = Modifier.weight(1f),
-                        onChange = { startWeek = it.coerceIn(1, MAX_WEEK) }
+                        onChange = { startWeek = it }
                     )
                     NumberField(
                         value = endWeek,
                         label = "结束周",
+                        range = 1..MAX_WEEK,
                         modifier = Modifier.weight(1f),
-                        onChange = { endWeek = it.coerceIn(1, MAX_WEEK) }
+                        onChange = { endWeek = it }
                     )
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -200,6 +205,9 @@ fun CourseEditorDialog(
             Button(
                 enabled = !nameError,
                 onClick = {
+                    // 兜底再钳一次：输入框留空时用的是「进来时的值」，
+                    // 这里保证写进库的节次/周次永远是合法范围
+                    val maxN = maxNode.coerceAtLeast(1)
                     onSave(
                         CourseEntity(
                             id = initial?.id ?: 0L,
@@ -207,10 +215,10 @@ fun CourseEditorDialog(
                             teacher = teacher.trim(),
                             room = room.trim(),
                             dayOfWeek = day,
-                            startNode = startNode,
-                            step = step,
-                            startWeek = minOf(startWeek, endWeek),
-                            endWeek = maxOf(startWeek, endWeek),
+                            startNode = startNode.coerceIn(1, maxN),
+                            step = step.coerceIn(1, maxN),
+                            startWeek = minOf(startWeek, endWeek).coerceIn(1, MAX_WEEK),
+                            endWeek = maxOf(startWeek, endWeek).coerceIn(1, MAX_WEEK),
                             weekType = weekType,
                             colorArgb = color
                         )
@@ -284,23 +292,3 @@ private fun ChoiceChip(
         Text(label, fontSize = 12.sp, color = foreground)
     }
 }
-
-@Composable
-private fun NumberField(
-    value: Int,
-    label: String,
-    modifier: Modifier = Modifier,
-    onChange: (Int) -> Unit
-) {
-    OutlinedTextField(
-        value = value.toString(),
-        onValueChange = { raw ->
-            val digits = raw.filter { it.isDigit() }.take(2)
-            onChange(digits.toIntOrNull() ?: 0)
-        },
-        label = { Text(label, fontSize = 11.sp) },
-        singleLine = true,
-        modifier = modifier
-    )
-}
-

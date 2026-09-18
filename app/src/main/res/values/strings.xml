@@ -3,10 +3,13 @@
     <string name="app_name">Obsession</string>
 
     <!-- 桌面小组件 -->
-    <string name="widget_today_label">今日课表</string>
-    <string name="widget_today_desc">今天要上的课，已上过的会自动淡化</string>
-    <string name="widget_next_label">下一节课</string>
-    <string name="widget_next_desc">正在上或即将开始的课</string>
-    <string name="widget_bar_label">课表简洁条</string>
-    <string name="widget_bar_desc">一行文字，只显示下一节课</string>
+    <string name="widget_week_label">周课表</string>
+    <string name="widget_week_desc">一周七天排开，今日列有强调色标记</string>
+    <string name="widget_day_label">今日课程</string>
+    <string name="widget_day_desc">今天要上的课，按时间顺序排列</string>
+    <string name="widget_upcoming_label">近日课程</string>
+    <string name="widget_upcoming_desc">今天与明天左右两栏对照</string>
+    <string name="widget_compact_label">今日紧凑</string>
+    <string name="widget_compact_desc">2×2 精简版，只留课程名、教室和时间</string>
+    <string name="widget_compact_empty">今天没有课</string>
 </resources>

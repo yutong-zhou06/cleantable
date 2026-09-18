@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 未开始的课：中性浅底胶囊 -->
+<!-- 头部图标胶囊底 -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="@color/widget_row_upcoming" />
-    <corners android:radius="12dp" />
+    <solid android:color="@color/w_chip_bg" />
+    <corners android:radius="8dp" />
 </shape>

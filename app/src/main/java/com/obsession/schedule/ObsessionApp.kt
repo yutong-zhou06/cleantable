@@ -9,7 +9,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import androidx.core.content.ContextCompat
 import com.obsession.schedule.ui.theme.ThemeController
-import com.obsession.schedule.widget.ScheduleWidgetRenderer
+import com.obsession.schedule.widget.WidgetRegistry
 import java.util.Calendar
 
 class ObsessionApp : Application() {
@@ -40,7 +40,7 @@ class ObsessionApp : Application() {
     /** 系统广播的转发器：日期 / 时区变化都意味着「今天」重新算了 */
     private class DateTimeWatcher : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            ScheduleWidgetRenderer.refreshAll(context)
+            WidgetRegistry.refreshAll(context)
         }
     }
 
@@ -81,7 +81,7 @@ class MidnightRefreshReceiver : BroadcastReceiver() {
         val pending = goAsync()
         Thread {
             try {
-                ScheduleWidgetRenderer.refreshAll(context)
+                WidgetRegistry.refreshAll(context)
             } finally {
                 ObsessionApp.scheduleMidnightRefresh(context)
                 pending.finish()

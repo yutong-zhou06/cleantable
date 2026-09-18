@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  小组件配色（深色 / 墨影）。
+  极简工具风：深灰底 + 高对比白字。整卡保留一点透明度透出壁纸，形成磨砂观感。
+-->
+<resources>
+    <color name="w_root_bg">#E614161B</color>
+
+    <color name="w_text">#FFF2F4F8</color>
+    <color name="w_text_dim">#FF9AA3B2</color>
+    <color name="w_text_faint">#FF6B7383</color>
+
+    <color name="w_accent">#FF6B8AFF</color>
+
+    <color name="w_divider">#1FFFFFFF</color>
+
+    <color name="w_chip_bg">#14FFFFFF</color>
+
+    <color name="w_card_bg">#1AFFFFFF</color>
+
+    <color name="w_ongoing_tint">#2A6B8AFF</color>
+</resources>

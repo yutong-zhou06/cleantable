@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 整卡底：16dp 圆角（提示词要求的圆角卡片） -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/w_root_bg" />
+    <corners android:radius="16dp" />
+</shape>
