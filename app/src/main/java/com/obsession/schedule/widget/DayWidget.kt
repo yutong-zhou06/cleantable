@@ -33,6 +33,8 @@ internal object DayWidgetRenderer {
         views.tint(R.id.day_ic_open, c.textDim)
         views.clickIcon(context, R.id.day_ic_set, widgetId, Rv.ACTION_SETTINGS)
         views.clickIcon(context, R.id.day_ic_open, widgetId, Rv.ACTION_HOME)
+        // 点组件任意位置都进入应用（此前只有头部小图标能点）
+        views.clickOpen(context, widgetId)
 
         views.setEmptyView(R.id.day_list, R.id.day_empty)
 

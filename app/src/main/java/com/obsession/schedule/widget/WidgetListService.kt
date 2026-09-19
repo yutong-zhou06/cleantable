@@ -74,6 +74,8 @@ internal class WidgetFactory(
     // ------------------------------------------------------------------
     private fun dayRow(card: CourseCard, c: WColors): RemoteViews {
         val views = Rv.of(context, R.layout.widget_row_day)
+        // 行点击：配合 setPendingIntentTemplate，点任意一行都能打开应用
+        views.setOnClickFillInIntent(R.id.row_root, Intent())
         // 淡色底：进行中用强调底，其他用课程色淡底
         val bgColor = if (WidgetCards.isOngoing(card)) c.ongoingTint
         else WidgetTheme.withAlpha(WidgetCards.bg(card, night), 0x2E)
@@ -106,6 +108,7 @@ internal class WidgetFactory(
     // ------------------------------------------------------------------
     private fun weekRow(s: WidgetSnapshot, c: WColors, row: Int): RemoteViews {
         val views = Rv.of(context, R.layout.widget_row_week)
+        views.setOnClickFillInIntent(R.id.row_root, Intent())
         for (day in 1..7) {
             val card = s.week[day - 1].courses.getOrNull(row)
             val bg = CELL_BG[day - 1]
@@ -146,6 +149,7 @@ internal class WidgetFactory(
     // ------------------------------------------------------------------
     private fun upRow(card: CourseCard, c: WColors): RemoteViews {
         val views = Rv.of(context, R.layout.widget_row_up)
+        views.setOnClickFillInIntent(R.id.row_root, Intent())
         views.tint(R.id.up_bar, WidgetCards.bar(card, night))
         views.alpha(R.id.up_bar, WidgetCards.alpha(card))
         views.text(R.id.up_nm, card.name)
@@ -162,6 +166,7 @@ internal class WidgetFactory(
     // ------------------------------------------------------------------
     private fun compactRow(card: CourseCard, c: WColors): RemoteViews {
         val views = Rv.of(context, R.layout.widget_row_compact)
+        views.setOnClickFillInIntent(R.id.row_root, Intent())
         views.tint(R.id.cp_bar, WidgetCards.bar(card, night))
         views.alpha(R.id.cp_bar, WidgetCards.alpha(card))
         views.text(R.id.cp_nm, card.name)

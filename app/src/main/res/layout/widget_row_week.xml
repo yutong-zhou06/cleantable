@@ -5,6 +5,7 @@
   控件 id 与 WidgetFactory.CELL_* 数组一一对应（wk_c{1..7}_{bg,st,em,t,n,r}）。
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/row_root"
     android:layout_width="match_parent"
     android:layout_height="42dp"
     android:orientation="horizontal"

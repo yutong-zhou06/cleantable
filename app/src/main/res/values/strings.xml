@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Obsession</string>
+    <string name="app_name">执课</string>
 
     <!-- 桌面小组件 -->
-    <string name="widget_week_label">周课表</string>
+    <string name="widget_week_label">执课 · 周课表</string>
     <string name="widget_week_desc">一周七天排开、格子等大，可上下滑动查看全部</string>
-    <string name="widget_day_label">今日课程</string>
+    <string name="widget_day_label">执课 · 今日课程</string>
     <string name="widget_day_desc">今天要上的课按时间排列，可上下滑动查看全部</string>
-    <string name="widget_upcoming_label">近日课程</string>
+    <string name="widget_upcoming_label">执课 · 近日课程</string>
     <string name="widget_upcoming_desc">今天与明天左右两栏对照，可各自滑动</string>
-    <string name="widget_compact_label">今日紧凑</string>
+    <string name="widget_compact_label">执课 · 今日紧凑</string>
     <string name="widget_compact_desc">2×2 精简版：课程名、上课时间与教室，可滑动</string>
     <string name="widget_compact_empty">今天没有课</string>
     <string name="widget_week_empty">本周没有课</string>

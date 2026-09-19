@@ -30,6 +30,7 @@ import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -61,6 +62,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.obsession.schedule.data.BgConfig
+import com.obsession.schedule.ui.legal.PrivacyConsent
 import com.obsession.schedule.ui.schedule.ScheduleViewModel
 import com.obsession.schedule.ui.theme.ThemeController
 import com.obsession.schedule.ui.theme.ThemeMode
@@ -220,7 +222,7 @@ fun SettingsScreen(
                     importLauncher.launch(arrayOf("*/*"))
                 }
                 SettingsRow(Icons.AutoMirrored.Filled.Send, "导出课表文件", "备份为 JSON") {
-                    exportLauncher.launch("Obsession-backup.json")
+                    exportLauncher.launch("执课-课表备份.json")
                 }
             }
 
@@ -278,8 +280,12 @@ fun SettingsScreen(
 
             SectionTitle("关于")
             SectionCard {
+                // 隐私政策必须能在应用内随时查看（商店审核要求），点开走系统浏览器
+                SettingsRow(Icons.Default.Info, "隐私政策", "零收集 · 数据只存本机") {
+                    PrivacyConsent.openPolicy(context)
+                }
                 Column(modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)) {
-                    Text("Obsession v0.7.0", fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                    Text("执课 v1.0", fontSize = 13.sp, fontWeight = FontWeight.Medium)
                     Spacer(Modifier.height(4.dp))
                     Text(
                         "零广告 · 无账号 · 数据只保存在本机。\n内置浏览器导入时需要访问教务网站（唯一联网场景），" +

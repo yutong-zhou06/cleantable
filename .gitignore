@@ -12,5 +12,12 @@ app/build
 /app/release
 *.jks
 *.keystore
+keystore.properties
+# 整个密钥库目录（含密码备份 txt）绝不入仓库
+/keystore/
 .kotlin/
 /dist/
+
+# 软著登记材料（用户手册等）：只留在本地，不进公开仓库。
+# docs/ 目录会作为 GitHub Pages 的发布源，所以这里必须挡住，避免手册被公开。
+/docs/软著/

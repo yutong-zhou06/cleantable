@@ -47,6 +47,8 @@ internal object WeekWidgetRenderer {
         views.tint(R.id.week_ic_open, c.textDim)
         views.clickIcon(context, R.id.week_ic_set, widgetId, Rv.ACTION_SETTINGS)
         views.clickIcon(context, R.id.week_ic_open, widgetId, Rv.ACTION_HOME)
+        // 点组件任意位置都进入应用（此前只有头部小图标能点）
+        views.clickOpen(context, widgetId)
 
         // 无课提示（AdapterView 空数据时自动显示）
         views.setEmptyView(R.id.week_list, R.id.week_empty)

@@ -26,6 +26,8 @@ internal object CompactWidgetRenderer {
         views.text(R.id.cp_date, snapshot.shortDayLabel)
 
         views.setEmptyView(R.id.cp_list, R.id.cp_empty)
+        // 点组件任意位置都进入应用（此前 2×2 无任何可点区域）
+        views.clickOpen(context, widgetId)
 
         val adapter = Intent(context, WidgetListService::class.java).apply {
             action = WidgetFactory.factoryAction(WidgetFactory.KIND_COMPACT, widgetId)

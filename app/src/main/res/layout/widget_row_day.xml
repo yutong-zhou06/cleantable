@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 日视图（4×2）的一行：淡课程底 + 左侧色条 + 节次/课程名(+时间段)/教室·教师 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/row_root"
     android:layout_width="match_parent"
     android:layout_height="46dp"
     android:paddingHorizontal="12dp"

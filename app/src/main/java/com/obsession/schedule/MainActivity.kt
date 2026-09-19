@@ -26,6 +26,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.lifecycleScope
 import com.obsession.schedule.browser.BrowserImportActivity
+import com.obsession.schedule.ui.legal.PrivacyConsent
+import com.obsession.schedule.ui.legal.PrivacyConsentDialog
 import com.obsession.schedule.ui.manage.CourseManageScreen
 import com.obsession.schedule.ui.manage.ManageScreen
 import com.obsession.schedule.ui.schedule.ScheduleScreen
@@ -61,11 +63,18 @@ class MainActivity : ComponentActivity() {
 
     private val viewModel: ScheduleViewModel by viewModels()
 
+    /**
+     * 启动意图是否已处理。未同意隐私政策时会被推迟到用户点「同意」之后再处理，
+     * 保证「同意之前不处理任何用户数据」这条合规顺序。
+     */
+    private var launchIntentsHandled = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        handleImportIntent(intent)
-        handleWidgetIntent(intent)
+
+        if (PrivacyConsent.isGranted(this)) processLaunchIntents()
+
         setContent {
             val dark = appDarkTheme()
             // 系统栏图标颜色跟随应用内主题（而非系统外观），
@@ -79,9 +88,35 @@ class MainActivity : ComponentActivity() {
                 )
             }
             ObsessionTheme {
-                MainContent(viewModel)
+                // 未同意隐私政策时，整个主页都不渲染，只留同意弹窗。
+                // 这是国内商店审核的硬要求：同意之前不得使用任何功能。
+                var consented by remember {
+                    mutableStateOf(PrivacyConsent.isGranted(this@MainActivity))
+                }
+                if (consented) {
+                    MainContent(viewModel)
+                } else {
+                    PrivacyConsentDialog(
+                        onViewPolicy = { PrivacyConsent.openPolicy(this@MainActivity) },
+                        onAgree = {
+                            PrivacyConsent.grant(this@MainActivity)
+                            consented = true
+                            // 同意了再补处理启动意图：分享进来的课表文件、小组件图标跳转
+                            processLaunchIntents()
+                        },
+                        onDisagree = { finish() }
+                    )
+                }
             }
         }
+    }
+
+    /** 分享 / 文件关联 / 小组件图标这三类启动意图，只在同意隐私政策之后处理，且只处理一次 */
+    private fun processLaunchIntents() {
+        if (launchIntentsHandled) return
+        launchIntentsHandled = true
+        handleImportIntent(intent)
+        handleWidgetIntent(intent)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -163,6 +198,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        // 同意隐私政策之前不做任何数据处理 —— 包括刷新小组件
+        if (!PrivacyConsent.isGranted(this)) return
         // 打开应用时顺手刷一次小组件：覆盖「改完数据没刷、跨天没触发」等一切遗漏时机。
         // 这也是 v0.3 小组件不更新修复链条的最后一环。
         lifecycleScope.launch(Dispatchers.IO) {

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>执课</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --fg:#1c1d20; --dim:#6b6f76; --line:#e6e8ec; --accent:#3b6fd4; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#121316; --card:#1b1d21; --fg:#eceef2; --dim:#9aa0a8; --line:#2b2e33; --accent:#8ab4f8; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 24px; background: var(--bg); color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                 "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    line-height: 1.7;
+  }
+  .card {
+    width: 100%; max-width: 520px; background: var(--card); border: 1px solid var(--line);
+    border-radius: 18px; padding: 32px 28px;
+  }
+  h1 { margin: 0 0 6px; font-size: 24px; letter-spacing: .5px; }
+  .sub { color: var(--dim); font-size: 14px; margin: 0 0 20px; }
+  ul { padding-left: 20px; margin: 0 0 22px; }
+  li { margin: 5px 0; font-size: 15px; }
+  a.btn {
+    display: inline-block; padding: 11px 20px; border-radius: 10px;
+    background: var(--accent); color: #fff; text-decoration: none; font-size: 15px; font-weight: 600;
+  }
+  @media (prefers-color-scheme: dark) { a.btn { color: #12161d; } }
+  .links { margin-top: 18px; font-size: 13.5px; }
+  .links a { color: var(--dim); }
+</style>
+</head>
+<body>
+  <main class="card">
+    <h1>执课</h1>
+    <p class="sub">零广告 · 无账号 · 数据只存本机</p>
+    <ul>
+      <li>课表、课程、作息全部保存在手机本地</li>
+      <li>不收集任何个人信息，不上传任何数据</li>
+      <li>唯一权限「网络访问」仅用于内置浏览器导入教务课表</li>
+    </ul>
+    <a class="btn" href="privacy.html">查看隐私政策</a>
+    <div class="links">
+      <a href="https://github.com/yutong-zhou06/cleantable" rel="noopener">GitHub 仓库</a>
+    </div>
+  </main>
+</body>
+</html>

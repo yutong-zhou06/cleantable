@@ -1,8 +1,17 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.devtools.ksp")
+}
+
+// 正式签名配置：从项目根目录的 keystore.properties 读取（该文件不入 Git）。
+// 文件不存在时 release 仍是未签名包，不影响 debug 构建与单元测试。
+val keystoreProps = Properties().apply {
+    val f = rootProject.file("keystore.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
 }
 
 android {
@@ -14,10 +23,24 @@ android {
         applicationId = "com.obsession.schedule"
         minSdk = 24
         targetSdk = 34
-        versionCode = 15
-        versionName = "0.7.0"
+        // 版本号规则（自 v1.0 起）：
+        // versionCode = 主版本*100 + 次版本*10（1.0→100，1.1→110，2.0→200）
+        // versionName：0.x 为内测；1.x 为正式版，重大更新才升 2.x
+        versionCode = 100
+        versionName = "1.0"
 
         vectorDrawables { useSupportLibrary = true }
+    }
+
+    signingConfigs {
+        if (keystoreProps.isNotEmpty()) {
+            create("release") {
+                storeFile = rootProject.file(keystoreProps.getProperty("storeFile"))
+                storePassword = keystoreProps.getProperty("storePassword")
+                keyAlias = keystoreProps.getProperty("keyAlias")
+                keyPassword = keystoreProps.getProperty("keyPassword")
+            }
+        }
     }
 
     buildTypes {
@@ -27,6 +50,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.findByName("release")
         }
     }
 

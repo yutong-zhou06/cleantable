@@ -49,6 +49,9 @@ internal object UpcomingWidgetRenderer {
         views.setEmptyView(R.id.up_list_m, R.id.up_empty_m)
         views.setPendingIntentTemplate(R.id.up_list_m, Rv.openApp(context, widgetId))
 
+        // 点组件任意位置都进入应用（此前只有列表行可点）
+        views.clickOpen(context, widgetId)
+
         manager.updateAppWidget(widgetId, views)
         manager.notifyAppWidgetViewDataChanged(widgetId, R.id.up_list_t)
         manager.notifyAppWidgetViewDataChanged(widgetId, R.id.up_list_m)

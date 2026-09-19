@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>执课 隐私政策</title>
+<style>
+  :root {
+    --bg: #f6f7f9;
+    --card: #ffffff;
+    --fg: #1c1d20;
+    --dim: #6b6f76;
+    --line: #e6e8ec;
+    --accent: #3b6fd4;
+    --accent-soft: #eef3fd;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121316;
+      --card: #1b1d21;
+      --fg: #eceef2;
+      --dim: #9aa0a8;
+      --line: #2b2e33;
+      --accent: #8ab4f8;
+      --accent-soft: #1e2532;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    padding: 0 16px 64px;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                 "Hiragino Sans GB", "Microsoft YaHei", "Source Han Sans SC", sans-serif;
+    font-size: 16px;
+    line-height: 1.75;
+  }
+  main { max-width: 720px; margin: 0 auto; }
+  header { padding: 40px 0 8px; }
+  h1 { font-size: 26px; line-height: 1.3; margin: 0 0 10px; letter-spacing: .2px; }
+  .meta { color: var(--dim); font-size: 13.5px; margin: 0; }
+  .callout {
+    margin: 22px 0 8px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: var(--accent-soft);
+    color: var(--fg);
+    font-weight: 600;
+    font-size: 15px;
+    border: 1px solid var(--line);
+  }
+  h2 {
+    font-size: 18px;
+    margin: 34px 0 10px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    letter-spacing: .2px;
+  }
+  h2:first-of-type { border-top: none; padding-top: 0; }
+  p { margin: 0 0 12px; }
+  ul { margin: 0 0 12px; padding-left: 22px; }
+  li { margin: 4px 0; }
+  code {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 1px 5px;
+    font-size: 13.5px;
+    word-break: break-all;
+  }
+  a { color: var(--accent); word-break: break-all; }
+  .box {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin: 0 0 14px;
+  }
+  .box ul { margin-bottom: 0; }
+  footer {
+    margin-top: 40px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    color: var(--dim);
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>执课 隐私政策</h1>
+    <p class="meta">
+      生效日期：2026 年 9 月 19 日 · 更新日期：2026 年 9 月 19 日<br>
+      适用版本：执课 v1.0 及以后版本
+    </p>
+  </header>
+
+  <div class="callout">一句话概括：执课不收集、不存储、不上传你的任何个人信息。</div>
+
+  <h2>一、引言</h2>
+  <p>
+    本政策说明「执课」（以下称"本应用"）如何处理与你有关的信息。本应用是一款纯本地课表工具，
+    无需注册、无需登录、无需联网即可使用，由个人开发者开发并维护。
+    我们在设计之初就尽可能少地接触你的信息——事实上，本应用不收集任何个人信息。
+  </p>
+
+  <h2>二、我们收集的信息</h2>
+  <p><strong>本应用不收集任何个人信息。</strong>具体而言，我们不收集、不请求、不存储以下任何一类信息：</p>
+  <div class="box">
+    <ul>
+      <li>姓名、手机号、邮箱等身份信息</li>
+      <li>位置信息（GPS 定位或网络定位）</li>
+      <li>通讯录、短信、通话记录、相册、麦克风、摄像头内容</li>
+      <li>设备标识符（IMEI、Android ID、OAID、MAC 地址、广告标识符等）</li>
+      <li>已安装应用列表、剪贴板内容、使用行为统计</li>
+      <li>崩溃日志、埋点数据、性能与诊断数据</li>
+    </ul>
+  </div>
+  <p>本应用没有账号体系，不提供登录注册，也不提供云同步功能。</p>
+
+  <h2>三、应用权限说明</h2>
+  <p>本应用仅申请一项系统权限：</p>
+  <div class="box">
+    <ul>
+      <li>
+        <strong>网络访问</strong>（<code>android.permission.INTERNET</code>）——
+        仅在你主动使用「从教务网站导入」功能时，用于内置浏览器打开你指定的教务系统网页。
+        你不使用该功能时，本应用不产生任何网络请求。
+      </li>
+    </ul>
+  </div>
+  <p>除上述权限外，本应用不申请任何其他系统权限（不申请存储、位置、相机、麦克风、通讯录、电话等权限）。</p>
+
+  <h2>四、信息的存储与删除</h2>
+  <ul>
+    <li>你创建的课表、课程、作息时间等数据，全部保存在你手机本地的应用私有数据库中（Room / SQLite），仅本应用可读取。</li>
+    <li>这些数据不会上传到任何服务器，开发者无法访问。</li>
+    <li>你可以随时在应用内删除课表或课程；卸载本应用会连同全部本地数据一并删除。</li>
+    <li>课表的导出与导入是你主动发起的本地文件操作。导出文件保存在你自己选择的位置，本应用不会上传该文件。</li>
+  </ul>
+
+  <h2>五、网络访问与第三方</h2>
+  <ul>
+    <li>本应用不集成任何广告 SDK、统计分析 SDK、社交分享 SDK 或第三方推送 SDK。</li>
+    <li>应用自身不向任何服务器发送你的数据，不进行任何形式的数据回传。</li>
+    <li>
+      当你使用「从教务网站导入」时，内置浏览器会直接访问你输入的教务系统网址。
+      该访问由你主动发起，请求直接发往学校或教务服务提供方，遵循对方自身的隐私政策；
+      本应用不介入、不记录、不上传这些请求内容。
+    </li>
+    <li>
+      在内置浏览器中输入的登录账号与密码直接提交给教务网站，不经过本应用，本应用不做任何存储。
+      关闭导入页面时，浏览记录与 Cookie 会被清除。
+    </li>
+  </ul>
+
+  <h2>六、未成年人保护</h2>
+  <p>
+    本应用不收集任何个人信息，因此不涉及未成年人个人信息的收集与处理。
+    未满 14 周岁的用户应在监护人指导下使用本应用。
+  </p>
+
+  <h2>七、你的权利</h2>
+  <p>
+    由于本应用不收集你的个人信息，不存在需要行使的查询、更正、删除个人信息的申请流程。
+    你的全部数据都保存在你自己的手机上，你可随时自行查看、修改或删除。
+  </p>
+
+  <h2>八、本政策的更新</h2>
+  <p>
+    本政策如有实质性变更，我们会在应用内以弹窗形式重新征得你的同意，并在本页面更新「更新日期」。
+    建议你定期查看本页面以了解最新版本。
+  </p>
+
+  <h2>九、联系我们</h2>
+  <p>如对本政策有任何疑问、意见或投诉，可通过以下方式联系：</p>
+  <div class="box">
+    <ul>
+      <li>
+        GitHub Issues：
+        <a href="https://github.com/yutong-zhou06/cleantable/issues" rel="noopener">
+          https://github.com/yutong-zhou06/cleantable/issues
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <footer>
+    执课 · 零广告 · 无账号 · 数据只存本机<br>
+    本页地址：https://yutong-zhou06.github.io/cleantable/privacy.html
+  </footer>
+</main>
+</body>
+</html>

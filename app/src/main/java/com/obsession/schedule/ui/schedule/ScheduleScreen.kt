@@ -290,7 +290,7 @@ fun ScheduleScreen(
                                 text = { Text("导出课表文件") },
                                 onClick = {
                                     menuExpanded = false
-                                    exportLauncher.launch("Obsession-backup.json")
+                                    exportLauncher.launch("执课-课表备份.json")
                                 }
                             )
                             DropdownMenuItem(
