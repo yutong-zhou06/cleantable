@@ -39,6 +39,15 @@ android {
                 storePassword = keystoreProps.getProperty("storePassword")
                 keyAlias = keystoreProps.getProperty("keyAlias")
                 keyPassword = keystoreProps.getProperty("keyPassword")
+
+                // 三种签名方案全开，为国内应用商店上架兜底：
+                // · v1（JAR 签名）：AGP 在 minSdk >= 24 时默认关闭，但部分商店审核工具与
+                //   渠道包工具会检查它是否存在，缺了可能被以「未使用 v1 签名」拒收；
+                // · v2：Android 7+ 实际校验的方案；
+                // · v3：支持密钥轮换，为将来换签名留后路。
+                enableV1Signing = true
+                enableV2Signing = true
+                enableV3Signing = true
             }
         }
     }
